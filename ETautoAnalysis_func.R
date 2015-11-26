@@ -111,11 +111,11 @@ eyetracking.analysis<- function (Directory, Datatype="Map", Lambda) {
                database_ET[k,"SacFix-Ratio"]<-ratio
                
           }
+               print(nameGame)
+          
                perc<-(k/length(fileNames))*100
                
                print(paste(round(perc,digits=2),"%"))
-               
-               print(nameGame)
      
      }
      database_ET
