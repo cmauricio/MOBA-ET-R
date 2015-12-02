@@ -1,6 +1,6 @@
 #####Getting the data#####
 
-wDirectory<-"C:/Users/ru25tas/Desktop/Analysis"
+wDirectory<-"C:/Users/ru25tas/Dropbox/Analysis"
 csvFile<-"151201-lolExpertsDB.csv"
 
 setwd(wDirectory)
@@ -30,6 +30,8 @@ fullDatabase[,"GroupByElo"]<-factor(fullDatabase[,"GroupByElo"], order=T, levels
 
 fullDatabase<-na.omit(fullDatabase)  # listwise deletion of missing values
 
+grouplist<-c("group_a","group_b", "group_c", "group_d","group_e","group_f", "group_g")
+grouptier<-c("silver","gold","diamond")
 
 #####Spliting databases for LoL Experts#####
 
@@ -47,6 +49,16 @@ group_diamond<-subset(fullDatabase, Tier=="diamond")
 
 expert_expertDB<-subset(fullDatabase, Condition=="expert")
 expert_noviceDB<-subset(fullDatabase, Condition=="novice")
+
+group_a_fixmap<-group_a$NrFixNOMM
+group_b_fixmap<-group_b$NrFixNOMM
+group_c_fixmap<-group_c$NrFixNOMM
+group_d_fixmap<-group_d$NrFixNOMM
+group_e_fixmap<-group_e$NrFixNOMM
+group_f_fixmap<-group_f$NrFixNOMM
+group_g_fixmap<-group_g$NrFixNOMM
+
+
 
 
 #####Spliting databases for DOTA Experts#####
@@ -283,10 +295,28 @@ cluster.stats(d, fit1$cluster, fit2$cluster)
 
 ##### Anova ######
 
-anov_1<-aov(group_a$NrFixNOMM ~ group_a$NrFixationsMM)
-summary(anov_1)
-plot(anov_1)
-boxplot(group_a$NrFixNOMM ~ group_a$NrFixationsMM)
+
+datAnova<-data.frame(cbind(group_f_fixmap,group_g_fixmap))
+datAnova<-data.frame(datAnova)
+summary(datAnova)
+
+write.table(summary(datAnova),file="dataFG.csv",sep=";", dec=",")
+
+stackDatAnova<-stack(datAnova)
+
+groupsAnova<-aov(values~ind, data=stackDatAnova)
+
+exportAnova<-as.matrix(summary(groupsAnova))
+drop1(groupsAnova,~.,test="F")
+write.table(exportAnova,file="anovaFG.csv",sep=";", dec=",")
+
+print(groupsAnova)
+
+png('anovaFG.png', width = 1024, height = 768, units = "px", pointsize = 13)
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page
+plot (groupsAnova)
+dev.off()     
+
 
 ########
 
