@@ -1,7 +1,11 @@
 #####Getting the data#####
 
 wDirectory<-"C:/Users/ru25tas/Dropbox/Analysis"
-csvFile<-"151201-lolExpertsDB.csv"
+csvFile<-"151201-FullETDatabase.csv"
+#csvFile<-"151201-FullETDatabase.csv"
+#csvFile<-"151201-dotaExpertsDB.csv"
+#csvFile<-"151201-lolExpertsDB.csv"
+#csv<File-"151201-lolNovicesDB.csv"
 
 setwd(wDirectory)
 
@@ -33,6 +37,95 @@ fullDatabase<-na.omit(fullDatabase)  # listwise deletion of missing values
 grouplist<-c("group_a","group_b", "group_c", "group_d","group_e","group_f", "group_g")
 grouptier<-c("silver","gold","diamond")
 
+##### Descriptive database #####
+
+wDirectory<-"C:/Users/ru25tas/Dropbox/Analysis"
+csvFile<-"151201-Descriptives.csv"
+
+setwd(wDirectory)
+
+Descriptives<-read.csv2(csvFile, header=TRUE, sep=";", dec=",",na.strings="NA")
+Descriptives<-as.data.frame(Descriptives) 
+
+Descriptives[,"Registry"]<-as.integer(Descriptives[,"Registry"])
+Descriptives[,"Game"]<-as.factor(Descriptives[,"Game"])
+Descriptives[,"Expertise"]<-factor(Descriptives[,"Expertise"], order=T, levels=c("novice","expert"))
+Descriptives[,"Participant"]<-as.integer(Descriptives[,"Participant"])
+Descriptives[,"Group"]<-as.integer(Descriptives[,"Group"])
+Descriptives[,"Age"]<-as.integer(Descriptives[,"Age"])
+Descriptives[,"Gender"]<-as.factor(Descriptives[,"Gender"])
+Descriptives[,"Studies"]<-factor(Descriptives[,"Studies"], order=T, levels=c("highschool","bachelor","postgraduate"))
+Descriptives[,"MOBAs.Experience"]<-as.factor(Descriptives[,"MOBAs.Experience"])
+Descriptives[,"Video.Gaming.Experience"]<-factor(Descriptives[,"Video.Gaming.Experience"], order=T, levels=c("nogame","casual","gamer","hardcore"))
+
+numberoflolnovices<-nrow(subset(Descriptives, Game=="lol"&Expertise=="novice"))
+numberoflolexperts<-nrow(subset(Descriptives, Game=="lol"&Expertise=="expert"))
+numberofdotaexperts<-nrow(subset(Descriptives, Game=="dota2"))
+numberoffemales<-nrow(subset(Descriptives, Gender=="female"))
+numberofmales<-nrow(subset(Descriptives, Gender=="male"))
+
+##### Descriptive plots #####
+
+genderCount<-table(Descriptives$Gender)
+genderPerc<-round(100*genderCount/sum(genderCount),2)
+pie(genderPerc, edges=500, radius=1, main="Participants by gender", labels=paste(genderPerc,"%"), col=heat.colors(length(genderCount)))
+legend("topright", c("female","male"), cex=1, fill=heat.colors(length(genderCount)))
+
+gameCount<-table(Descriptives$Game)
+gamePerc<-round(100*gameCount/sum(gameCount),2)
+pie(gamePerc,edges = 500, radius=1, main="Participation by game",labels=paste(genderPerc,"%"), col=heat.colors(length(gameCount)))
+legend("topright", c("DOTA2","League of Legends"), cex=0.8, fill=heat.colors(length(gameCount)))
+
+expertiseCount<-table(Descriptives$Expertise)
+expertisePerc<-round(100*expertiseCount/sum(expertiseCount),2)
+pie(expertisePerc,edges=500, radius=1, main="Participants expertise", labels=paste(expertisePerc,"%"), col=heat.colors(length(expertiseCount)))
+legend("topright", c("novices","experts"), cex=1, fill=heat.colors(length(expertiseCount)))
+
+labelsMobaExperience <- table(Descriptives$MOBAs.Experience)
+midpoints <- barplot(table(Descriptives$MOBAs.Experience), col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency")
+text(midpoints, c(3,4,6,2,7,23), labels=labelsMobaExperience)
+
+labelsGameExperience <- table(Descriptives$Video.Gaming.Experience)
+midpoints<-barplot(table(Descriptives$Video.Gaming.Experience), col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency")
+text(midpoints, c(3,6,14,23), labels=labelsGameExperience)
+
+#!!!!!! I need to update the descriptives database in order to do this
+
+hist(Descriptives$Age,freq=T, col=heat.colors(1,alpha=1), border="black", main="Age frequency of participants", xlab = "Age", ylab="Frequency", labels=T)
+
+barplot(table(fullDatabase$Tier),freq=T, col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency", labels=T)
+
+barplot(table(fullDatabase$GroupByTier), freq=T, col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency", labels=T)
+
+plot(fullDatabase$Condition,type = "", main="participants by condition", xlab="condition", ylab="amount")
+
+plot(fullDatabase$GroupByElo,type = "", main="participants by elo ranges", xlab="elo", ylab="amount")
+
+
+##### Full DB plots and distributions #####
+
+outcomeCount<-table(fullDatabase$Outcome)
+outcomePerc<-round(100*outcomeCount/sum(outcomeCount),2)
+pie(outcomePerc, edges=500, radius=1, main="Outcome of the games", labels=paste(outcomePerc,"%"), col=heat.colors(length(outcomeCount)))
+legend("topright", c("lost","win"), cex=1, fill=heat.colors(length(outcomeCount)))
+
+fixGameDist<-na.omit(fullDatabase$NrFixNOMM)
+h<-hist(fullDatabase$NrFixNOMM, breaks=10, col="red", xlab="Number of fixations", ylab = "Frequency of occurence", main="Histogram with Normal Curve") 
+xfit<-seq(min(fixGameDist),max(fixGameDist),length=50) #generates a sequence with seq
+yfit<-dnorm(xfit,mean=mean(fixGameDist),sd=sd(fixGameDist)) #gets the normal distribution dnorm
+yfit <- yfit*diff(h$mids[1:2])*length(x) 
+lines(xfit, yfit, col="blue", lwd=2)
+
+
+##### Relational plots #####
+
+#pie(summary(fullDatabase$Expertise)~summary(fullDatabase$Condition),edges=500, radius=1, main="Participants expertise", col=heat.colors(6,alpha = 1))
+
+#plot(fullDatabase$Game~fullDatabase$Expertise,type = "", main="game vs expertise", xlab="game", ylab="expertise")
+
+#plot(fullDatabase$Expertise~fullDatabase$Outcome,type = "", main="expertise vs outcome", xlab="expertise", ylab="outcome")
+
+
 #####Spliting databases for LoL Experts#####
 
 group_a<-subset(fullDatabase, GroupByTier=="A")
@@ -61,7 +154,7 @@ group_g_fixmap<-group_g$NrFixNOMM
 
 
 
-#####Spliting databases for DOTA Experts#####
+##### Spliting databases for DOTA Experts#####
 
 group_a<-subset(fullDatabase, GroupByTier=="A")
 group_b<-subset(fullDatabase, GroupByTier=="B")
@@ -69,7 +162,7 @@ group_c<-subset(fullDatabase, GroupByTier=="C")
 group_d<-subset(fullDatabase, GroupByTier=="D")
 group_e<-subset(fullDatabase, GroupByTier=="E")
 
-#####Spliting databases for LoL Novices#####
+##### Spliting databases for LoL Novices#####
 
 expert_tutorialDB<-subset(fullDatabase, Condition=="tutorial")
 expert_noviceDB<-subset(fullDatabase, Condition=="novice")
@@ -77,7 +170,7 @@ expert_ev1DB<-subset(fullDatabase, Condition=="evaluation1")
 expert_ev2DB<-subset(fullDatabase, Condition=="evaluation2")
 
 
-#####Gatting the game Time#####
+##### Getting the game Time#####
 
 gameTimeTierDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$SurfaceVisGame.secs.,fullDatabase$SurfaceVisMM.secs.,fullDatabase$TotalSurfaceVisTotal.secs.,fullDatabase$VisibilityLost..secs.)
 #gameTimeTierDB<-na.omit(gameTimeTierDB)
@@ -86,7 +179,7 @@ colnames(gameTimeTierDB)<-c("GroupByTier", "Condition", "Outcome", "SurfaceVisGa
 
 plot(gameTimeTierDB, col=fullDatabase$GroupByTier)
 
-#####Percentage of Gaze by Tier#####
+##### Percentage of Gaze by Tier#####
 
 percGazeDB<-cbind(fullDatabase$GroupByTier,fullDatabase$PercGazeGame,fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$PercGazeMM,fullDatabase$PercGazeOut)
 #percGazeDB<-na.omit(percGazeDB)
@@ -95,7 +188,7 @@ colnames(percGazeDB)<-c("GroupByTier", "Condition", "Outcome", "PercGazeGame","P
 
 plot(percGazeDB, col=fullDatabase$GroupByTier)
 
-#####Number of fixations by Tier#####
+##### Number of fixations by Tier#####
 
 numberFixationsDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$NrFixationsGame, fullDatabase$NrFixNOMM,fullDatabase$NrFixationsMM)
 #numberFixationsDB<-na.omit(numberFixationsDB)
@@ -104,7 +197,7 @@ colnames(numberFixationsDB)<-c("GroupByTier", "Condition", "Outcome", "TotalFixa
 
 plot(numberFixationsDB, col=fullDatabase$GroupByTier)
 
-#####Number of Saccades by Tier#####
+##### Number of Saccades by Tier#####
 
 numberSaccadesDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$SaccadesMap,fullDatabase$SaccadesMM)
 #numberSaccadesDB<-na.omit(numberSaccadesDB)
@@ -113,7 +206,7 @@ colnames(numberSaccadesDB)<-c("GroupByTier", "Condition", "Outcome", "SaccadesGa
 
 plot(numberSaccadesDB, col=fullDatabase$GroupByTier)
 
-#####relation saccade-fixation by Tier#####
+##### Relation saccade-fixation by Tier#####
 
 SacFixRatioDB<-cbind(fullDatabase$GroupByTier,fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$SacFixRatioMap, fullDatabase$SacFixRatioMM)
 #SacFixRatioDB<-na.omit(SacFixRatioDB)
@@ -122,7 +215,7 @@ colnames(SacFixRatioDB)<-c("GroupByTier", "Condition", "Outcome", "SacFixRatioGa
 
 plot(SacFixRatioDB, col=fullDatabase$GroupByTier)
 
-#####Average (statistical mean) of fixations and saccades per game#####
+##### Average (statistical mean) of fixations and saccades per game#####
 
 meanSaccadesMap<-numberSaccadesDB$SaccadesGame/gameTimeTierDB$SurfaceVisGameSecs
 meanSaccadesMM<-numberSaccadesDB$SaccadesMM/gameTimeTierDB$SurfaceVisMMSecs
@@ -137,7 +230,7 @@ plot(meanSacsFixTier, col=fullDatabase$GroupByTier)
 with(meanSacsFixTier, plot(MeanFixMM,MeanSacMM, col = GroupByTier)) #Makes a plot with colour based on the Tier
 abline(h = 12, lwd = 2, lty = 2)
 
-####Mean of fixation duration#####
+#### Mean of fixation duration#####
 
 meanFixTime<-cbind(fullDatabase$GroupByTier, fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$MeanDurationGame, fullDatabase$MeanDurationMM)
 meanFixTime<-as.data.frame(meanFixTime)
@@ -146,7 +239,7 @@ colnames(meanFixTime)<-c("GroupByTier","Condition", "Outcome", "MeanFixDurationM
 
 plot(meanFixTime, col=fullDatabase$GroupByTier)
 
-#####Percentage of fixations according to time#####
+##### Percentage of fixations according to time#####
 
 #perc1<-avgSacsFixTierTime$AvgFixMap*numberFixationsDB$NrFixationsMap
 #perc<-(sqrt(perc1)/sqrt(gameTimeTierDB$SurfaceVisGameSecs)) #bad
@@ -154,7 +247,7 @@ plot(meanFixTime, col=fullDatabase$GroupByTier)
 #View(perc1)
 
 
-#####Percentage of gaze according to time#####
+##### Percentage of gaze according to time #####
 
 
 
@@ -189,16 +282,8 @@ dev.off()
 
 
 
-##### Descriptives and plots #####
-
-plot(fullDatabase$Gender)
-plot(fullDatabase$Age)
-plot(fullDatabase$Group)
-plot(fullDatabase$GroupByTier)
-plot(fullDatabase$Condition)
 
 
-#hist(iq) # Makes a histogram of the variable sampling the variable automatically
 
 
 
