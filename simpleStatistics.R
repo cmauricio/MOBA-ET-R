@@ -1,11 +1,63 @@
-#####Getting the data#####
+##### Functions #####
+
+# Function to make histograms with distribution line
+
+distribution_hist<-function (variable, breaks=5, histcol="red", xlab="xlabel", ylab="ylabel", title="Histogram with Normal Curve", curvelength=50, curvecol="blue"){
+     dataDist<-na.omit(variable)
+     h<-hist(dataDist, breaks=breaks, col=histcol, xlab=xlab, ylab=ylab, main=title) 
+     xfit<-seq(min(dataDist),max(dataDist),length=curvelength) #generates a sequence with seq
+     yfit<-dnorm(xfit,mean=mean(dataDist),sd=sd(dataDist)) #gets the normal distribution dnorm
+     yfit <- yfit*diff(h$mids[1:2])*length(dataDist) 
+     lines(xfit, yfit, col=curvecol, lwd=2)
+}
+
+# Cleaning outliers 
+
+outliers.na<-function (array){
+     deviation<-0
+     mn<-0
+     i<-1
+     counter<-0
+     array2<-na.omit(array)
+     deviation<-sd(array2)
+     mn<-mean(array)
+     a<-mn+3*deviation
+     b<-mn-3*deviation
+     
+     for(i in 1:length(array)) {
+          if (is.na(array[i])==T){
+               next()
+          } else if (array[i]> a|| array[i]< b){
+               array[i]<-NA
+               counter<-counter+1
+          }
+     }
+     array     
+}
+
+# Anova
+
+quick.anova<-function(var1, var2, var3){
+     
+     Data <- data.frame(Value=c(var1,var2, var3), Group=factor(rep(c("var1", "var2", "var3"), times=c(length(var1), length(var2), length(var3)))))
+     print (summary(Data))
+     an1<-aov(Value~Group, Data)
+     tu<-TukeyHSD(an1)
+     anova(an1)
+     tu
+}
+
+quick.anova(group_silver$ratioSacTimeGame,group_gold$ratioSacTimeGame,group_diamond$ratioSacTimeGame)
+
+##### Getting the data #####
+
+library("graphics", lib.loc="C:/Program Files/R/R-3.2.1/library")
+
+#setwd("C:/Users/Mauro/Dropbox/Analysis")
+#setwd("C:/Users/ru25tas/Dropbox/Analysis")
 
 wDirectory<-"C:/Users/ru25tas/Dropbox/Analysis"
 csvFile<-"151201-FullETDatabase.csv"
-#csvFile<-"151201-FullETDatabase.csv"
-#csvFile<-"151201-dotaExpertsDB.csv"
-#csvFile<-"151201-lolExpertsDB.csv"
-#csv<File-"151201-lolNovicesDB.csv"
 
 setwd(wDirectory)
 
@@ -21,23 +73,42 @@ fullDatabase[,"Expertise"]<-as.factor(fullDatabase[,"Expertise"])
 fullDatabase[,"Condition"]<-as.factor(fullDatabase[,"Condition"])
 fullDatabase[,"Game"]<-as.factor(fullDatabase[,"Game"])
 fullDatabase[,"Outcome"]<-factor(fullDatabase[,"Outcome"], order=T, levels=c("lost","win"))
-
-# Only LoL Experts fields
 fullDatabase[,"Tier"]<-factor(fullDatabase[,"Tier"], order=T, levels=c("bronce", "silver", "gold", "platinum", "diamond"))
 fullDatabase[,"Division"]<-factor(fullDatabase[,"Division"], order=T, levels=c("1","2","3","4","5"))
 fullDatabase[,"GroupByTier"]<-factor(fullDatabase[,"GroupByTier"], order=T, levels=c("A","B","C","D","E","F","G"))
-
-# Only DOTA fields
 fullDatabase[,"Elo"]<-as.integer(fullDatabase[,"Elo"])
 fullDatabase[,"GroupByElo"]<-factor(fullDatabase[,"GroupByElo"], order=T, levels=c("A","B","C","D","E"))
-
-
-fullDatabase<-na.omit(fullDatabase)  # listwise deletion of missing values
+fullDatabase[,"SacFixRatioMap"]<-as.numeric(fullDatabase[,"SacFixRatioMap"])
+fullDatabase[,"SacFixRatioMM"]<-as.numeric(fullDatabase[,"SacFixRatioMap"])
 
 grouplist<-c("group_a","group_b", "group_c", "group_d","group_e","group_f", "group_g")
 grouptier<-c("silver","gold","diamond")
 
-##### Descriptive database #####
+# Ratio of saccades and fixations in time 
+
+numberFixGame<-fullDatabase$NrFixNOMM
+totalVisTimeGame<-fullDatabase$SurfaceVisGame.secs.
+ratioFixTimeGame<-round(numberFixGame/totalVisTimeGame,2)
+ratioFixTimeGame<-as.numeric(ratioFixTimeGame)
+
+numberFixMM<-fullDatabase$NrFixationsMM
+totalVisTimeMM<-fullDatabase$SurfaceVisMM.secs.
+ratioFixTimeMM<-round(numberFixMM/totalVisTimeMM,2)
+ratioFixTimeMM<-as.numeric(ratioFixTimeMM)
+
+numberSacGame<-fullDatabase$SaccadesMap
+totalVisTimeGame<-fullDatabase$SurfaceVisGame.secs.
+ratioSacTimeGame<-round(numberSacGame/totalVisTimeGame,2)
+ratioSacTimeGame<-as.numeric(ratioSacTimeGame)
+
+numberSacMM<-fullDatabase$SaccadesMM
+totalVisTimeMM<-fullDatabase$SurfaceVisMM.secs.
+ratioSacTimeMM<-round(numberSacMM/totalVisTimeMM,2)
+ratioSacTimeMM<-as.numeric(ratioSacTimeMM)
+
+fullDatabase<-cbind(fullDatabase, ratioFixTimeGame,ratioFixTimeMM,ratioSacTimeGame,ratioSacTimeMM)
+
+##### Descriptives database #####
 
 wDirectory<-"C:/Users/ru25tas/Dropbox/Analysis"
 csvFile<-"151201-Descriptives.csv"
@@ -57,12 +128,92 @@ Descriptives[,"Gender"]<-as.factor(Descriptives[,"Gender"])
 Descriptives[,"Studies"]<-factor(Descriptives[,"Studies"], order=T, levels=c("highschool","bachelor","postgraduate"))
 Descriptives[,"MOBAs.Experience"]<-as.factor(Descriptives[,"MOBAs.Experience"])
 Descriptives[,"Video.Gaming.Experience"]<-factor(Descriptives[,"Video.Gaming.Experience"], order=T, levels=c("nogame","casual","gamer","hardcore"))
+Descriptives[,"Tier"]<-factor(Descriptives[,"Tier"], order=T, levels=c("unranked","bronce","silver","gold","diamond","platinum"))
+Descriptives[,"GroupByTier"]<-factor(Descriptives[,"GroupByTier"], order=T, levels=c("unranked","A","B","C","D","F","G"))
+Descriptives[,"GroupByElo"]<-factor(Descriptives[,"GroupByElo"], order=T, levels=c("A","B","C","D","E"))
 
 numberoflolnovices<-nrow(subset(Descriptives, Game=="lol"&Expertise=="novice"))
 numberoflolexperts<-nrow(subset(Descriptives, Game=="lol"&Expertise=="expert"))
 numberofdotaexperts<-nrow(subset(Descriptives, Game=="dota2"))
 numberoffemales<-nrow(subset(Descriptives, Gender=="female"))
 numberofmales<-nrow(subset(Descriptives, Gender=="male"))
+
+##### Getting the different databases #####
+
+lolNovicesDB<-subset(fullDatabase, Game=="lol" & Expertise=="novice")
+lolNovicesDB[,"Tier"]<-NULL
+lolNovicesDB[,"Division"]<-NULL
+lolNovicesDB[,"GroupByTier"]<-NULL
+lolNovicesDB[,"Elo"]<-NULL
+lolNovicesDB[,"GroupByElo"]<-NULL
+lolNovicesDB<-na.omit(lolNovicesDB)
+lolNovicesDB[,"GazeInGame"]<-outliers.na(lolNovicesDB$GazeInGame)
+lolNovicesDB[,"GazeMM"]<-outliers.na(lolNovicesDB$GazeMM)
+lolNovicesDB[,"NrFixationsGame"]<-outliers.na(lolNovicesDB$NrFixNOMM)
+lolNovicesDB[,"NrFixationsMM"]<-outliers.na(lolNovicesDB$NrFixationsMM)
+lolNovicesDB[,"SaccadesMAp"]<-outliers.na(lolNovicesDB$SaccadesMap)
+lolNovicesDB[,"SaccadesMM"]<-outliers.na(lolNovicesDB$SaccadesMM)
+lolNovicesDB[,"SacFixRatioMap"]<-outliers.na(lolNovicesDB$SacFixRatioMap)
+lolNovicesDB[,"SacFixRatioMM"]<-outliers.na(lolNovicesDB$SacFixRatioMM)
+lolNovicesDB[,"ratioFixTimeGame"]<-outliers.na(lolNovicesDB$ratioFixTimeGame)
+lolNovicesDB[,"ratioFixTimeMM"]<-outliers.na(lolNovicesDB$ratioFixTimeMM)
+lolNovicesDB[,"ratioSacTimeGame"]<-outliers.na(lolNovicesDB$ratioSacTimeGame)
+lolNovicesDB[,"ratioSacTimeMM"]<-outliers.na(lolNovicesDB$ratioSacTimeMM)
+lolNovicesDB<-na.omit(lolNovicesDB)
+
+lolExpertsDB<-subset(fullDatabase, Game=="lol" & Expertise=="expert")
+lolExpertsDB[,"Elo"]<-NULL
+lolExpertsDB[,"GroupByElo"]<-NULL
+lolExpertsDB<-na.omit(lolExpertsDB)
+
+lolExpExpDB<-subset(lolExpertsDB, Condition=="expert")
+lolExpExpDB[,"GazeInGame"]<-outliers.na(lolExpExpDB$GazeInGame)
+lolExpExpDB[,"GazeMM"]<-outliers.na(lolExpExpDB$GazeMM)
+lolExpExpDB[,"NrFixationsGame"]<-outliers.na(lolExpExpDB$NrFixNOMM)
+lolExpExpDB[,"NrFixationsMM"]<-outliers.na(lolExpExpDB$NrFixationsMM)
+lolExpExpDB[,"SaccadesMAp"]<-outliers.na(lolExpExpDB$SaccadesMap)
+lolExpExpDB[,"SaccadesMM"]<-outliers.na(lolExpExpDB$SaccadesMM)
+lolExpExpDB[,"SacFixRatioMap"]<-outliers.na(lolExpExpDB$SacFixRatioMap)
+lolExpExpDB[,"SacFixRatioMM"]<-outliers.na(lolExpExpDB$SacFixRatioMM)
+lolExpExpDB[,"ratioFixTimeGame"]<-outliers.na(lolExpExpDB$ratioFixTimeGame)
+lolExpExpDB[,"ratioFixTimeMM"]<-outliers.na(lolExpExpDB$ratioFixTimeMM)
+lolExpExpDB[,"ratioSacTimeGame"]<-outliers.na(lolExpExpDB$ratioSacTimeGame)
+lolExpExpDB[,"ratioSacTimeMM"]<-outliers.na(lolExpExpDB$ratioSacTimeMM)
+lolExpExpDB<-na.omit(lolExpExpDB)
+
+lolExpNovDB<-subset(lolExpertsDB, Condition=="novice")
+lolExpNovDB[,"GazeInGame"]<-outliers.na(lolExpNovDB$GazeInGame)
+lolExpNovDB[,"GazeMM"]<-outliers.na(lolExpNovDB$GazeMM)
+lolExpNovDB[,"NrFixationsGame"]<-outliers.na(lolExpNovDB$NrFixNOMM)
+lolExpNovDB[,"NrFixationsMM"]<-outliers.na(lolExpNovDB$NrFixationsMM)
+lolExpNovDB[,"SaccadesMAp"]<-outliers.na(lolExpNovDB$SaccadesMap)
+lolExpNovDB[,"SaccadesMM"]<-outliers.na(lolExpNovDB$SaccadesMM)
+lolExpNovDB[,"SacFixRatioMap"]<-outliers.na(lolExpNovDB$SacFixRatioMap)
+lolExpNovDB[,"SacFixRatioMM"]<-outliers.na(lolExpNovDB$SacFixRatioMM)
+lolExpNovDB[,"ratioFixTimeGame"]<-outliers.na(lolExpNovDB$ratioFixTimeGame)
+lolExpNovDB[,"ratioFixTimeMM"]<-outliers.na(lolExpNovDB$ratioFixTimeMM)
+lolExpNovDB[,"ratioSacTimeGame"]<-outliers.na(lolExpNovDB$ratioSacTimeGame)
+lolExpNovDB[,"ratioSacTimeMM"]<-outliers.na(lolExpNovDB$ratioSacTimeMM)
+lolExpNovDB<-na.omit(lolExpNovDB)
+
+dota2DB<-subset(fullDatabase, Game=="dota")
+dota2DB[,"Tier"]<-NULL
+dota2DB[,"Division"]<-NULL
+dota2DB[,"GroupByTier"]<-NULL
+dota2DB<-na.omit(dota2DB)
+dota2DB[,"GazeInGame"]<-outliers.na(dota2DB$GazeInGame)
+dota2DB[,"GazeMM"]<-outliers.na(dota2DB$GazeMM)
+dota2DB[,"NrFixationsGame"]<-outliers.na(dota2DB$NrFixNOMM)
+dota2DB[,"NrFixationsMM"]<-outliers.na(dota2DB$NrFixationsMM)
+dota2DB[,"SaccadesMAp"]<-outliers.na(dota2DB$SaccadesMap)
+dota2DB[,"SaccadesMM"]<-outliers.na(dota2DB$SaccadesMM)
+dota2DB[,"SacFixRatioMap"]<-outliers.na(dota2DB$SacFixRatioMap)
+dota2DB[,"SacFixRatioMM"]<-outliers.na(dota2DB$SacFixRatioMM)
+dota2DB[,"ratioFixTimeGame"]<-outliers.na(dota2DB$ratioFixTimeGame)
+dota2DB[,"ratioFixTimeMM"]<-outliers.na(dota2DB$ratioFixTimeMM)
+dota2DB[,"ratioSacTimeGame"]<-outliers.na(dota2DB$ratioSacTimeGame)
+dota2DB[,"ratioSacTimeMM"]<-outliers.na(dota2DB$ratioSacTimeMM)
+dota2DB<-na.omit(dota2DB)
 
 ##### Descriptive plots #####
 
@@ -79,7 +230,7 @@ legend("topright", c("DOTA2","League of Legends"), cex=0.8, fill=heat.colors(len
 expertiseCount<-table(Descriptives$Expertise)
 expertisePerc<-round(100*expertiseCount/sum(expertiseCount),2)
 pie(expertisePerc,edges=500, radius=1, main="Participants expertise", labels=paste(expertisePerc,"%"), col=heat.colors(length(expertiseCount)))
-legend("topright", c("novices","experts"), cex=1, fill=heat.colors(length(expertiseCount)))
+legend("topright", c("experts","novices"), cex=1, fill=heat.colors(length(expertiseCount)))
 
 labelsMobaExperience <- table(Descriptives$MOBAs.Experience)
 midpoints <- barplot(table(Descriptives$MOBAs.Experience), col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency")
@@ -89,33 +240,304 @@ labelsGameExperience <- table(Descriptives$Video.Gaming.Experience)
 midpoints<-barplot(table(Descriptives$Video.Gaming.Experience), col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency")
 text(midpoints, c(3,6,14,23), labels=labelsGameExperience)
 
-#!!!!!! I need to update the descriptives database in order to do this
-
 hist(Descriptives$Age,freq=T, col=heat.colors(1,alpha=1), border="black", main="Age frequency of participants", xlab = "Age", ylab="Frequency", labels=T)
 
-barplot(table(fullDatabase$Tier),freq=T, col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency", labels=T)
+labelsGameTier <- table(Descriptives$Tier)
+midpoints<-barplot(table(Descriptives$Tier), col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency")
+text(midpoints, c(3,6,14,23), labels=labelsGameTier)
 
-barplot(table(fullDatabase$GroupByTier), freq=T, col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency", labels=T)
+tierCount<-table(Descriptives$Tier)
+tierPerc<-round(100*tierCount/sum(tierCount),2)
+pie(tierPerc, edges=500, radius=1, main="Participants by tier",labels=paste(tierPerc,"%"),  col=heat.colors(length(tierCount)))
+legend("topright", c("Diamond","gold", "silver", "unranked"), cex=1, fill=heat.colors(length(tierCount)))
 
-plot(fullDatabase$Condition,type = "", main="participants by condition", xlab="condition", ylab="amount")
+labelsGameTiergroup <- table(Descriptives$GroupByTier)
+midpoints<-barplot(table(Descriptives$GroupByTier), col=heat.colors(1,alpha=1), border="black", main="Participants group by tier", xlab="Group", ylab="Frequency")
+text(midpoints, c(3,6,14,23), labels=labelsGameTiergroup)
+#legend("topright", c("novices","experts"), cex=1, fill=heat.colors(length(expertiseCount)))
 
-plot(fullDatabase$GroupByElo,type = "", main="participants by elo ranges", xlab="elo", ylab="amount")
+tierGroupCount<-table(Descriptives$GroupByTier)
+tierGroupPerc<-round(100*tierGroupCount/sum(tierGroupCount),2)
+pie(tierGroupPerc, edges=500, radius=1, main="Participants by tier group", labels=paste(tierGroupPerc,"%"), col=heat.colors(length(tierGroupCount)))
+legend("topright", c("A","B", "C","D","E","F","G"), cex=1, fill=heat.colors(length(tierGroupCount)))
 
+labelsGameElogroup <- table(Descriptives$GroupByElo)
+midpoints<-barplot(table(Descriptives$GroupByElo), col=heat.colors(1,alpha=1), border="black", main="Participants group by Elo", xlab="Tier", ylab="Frequency")
+text(midpoints, c(3,6,14,23), labels=labelsGameElogroup)
+#legend("topright", c("novices","experts"), cex=1, fill=heat.colors(length(expertiseCount)))
+
+eloGroupCount<-table(Descriptives$GroupByElo)
+eloGroupPerc<-round(100*eloGroupCount/sum(eloGroupCount),2)
+pie(eloGroupPerc, edges=500, radius=1, main="Participants by gender", labels=paste(eloGroupPerc,"%"), col=heat.colors(length(eloGroupCount)))
+legend("topright", c("female","male"), cex=1, fill=heat.colors(length(genderCount)))
+
+##### Exploratory plots #####
+
+# Game Time
+
+gameTimeTierDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Outcome, fullDatabase$SurfaceVisGame.secs.,fullDatabase$SurfaceVisMM.secs.,fullDatabase$TotalSurfaceVisTotal.secs.,fullDatabase$VisibilityLost..secs.)
+gameTimeTierDB<-as.data.frame(gameTimeTierDB)
+colnames(gameTimeTierDB)<-c("GroupByTier", "Condition", "Outcome", "SurfaceVisGameSecs","SurfaceVisMMSecs","SurfaceVisTotalSecs","SurfaceVislostSecs")
+plot(gameTimeTierDB, col=fullDatabase$GroupByTier)
+
+gameTimeTierDB<-cbind(lolExpExpDB$GroupByTier, lolExpExpDB$Outcome, lolExpExpDB$SurfaceVisGame.secs.,lolExpExpDB$SurfaceVisMM.secs.,lolExpExpDB$TotalSurfaceVisTotal.secs.,lolExpExpDB$VisibilityLost..secs.)
+gameTimeTierDB<-as.data.frame(gameTimeTierDB)
+colnames(gameTimeTierDB)<-c("GroupByTier", "Outcome", "SurfaceVisGameSecs","SurfaceVisMMSecs","SurfaceVisTotalSecs","SurfaceVislostSecs")
+plot(gameTimeTierDB, col=lolExpExpDB$GroupByTier)
+
+gameTimeTierDB<-cbind(lolExpNovDB$GroupByTier, lolExpNovDB$Outcome, lolExpNovDB$SurfaceVisGame.secs.,lolExpNovDB$SurfaceVisMM.secs.,lolExpNovDB$TotalSurfaceVisTotal.secs.,lolExpNovDB$VisibilityLost..secs.)
+gameTimeTierDB<-as.data.frame(gameTimeTierDB)
+colnames(gameTimeTierDB)<-c("GroupByTier", "Outcome", "SurfaceVisGameSecs","SurfaceVisMMSecs","SurfaceVisTotalSecs","SurfaceVislostSecs")
+plot(gameTimeTierDB, col=lolExpNovDB$GroupByTier)
+
+gameTimeTierDB<-cbind(lolNovicesDB$Outcome, lolNovicesDB$SurfaceVisGame.secs.,lolNovicesDB$SurfaceVisMM.secs.,lolNovicesDB$TotalSurfaceVisTotal.secs.,lolNovicesDB$VisibilityLost..secs.)
+gameTimeTierDB<-as.data.frame(gameTimeTierDB)
+colnames(gameTimeTierDB)<-c("Outcome", "SurfaceVisGameSecs","SurfaceVisMMSecs","SurfaceVisTotalSecs","SurfaceVislostSecs")
+plot(gameTimeTierDB)
+
+gameTimeTierDB<-cbind(dota2DB$GroupByElo, dota2DB$Outcome, dota2DB$SurfaceVisGame.secs.,dota2DB$SurfaceVisMM.secs.,dota2DB$TotalSurfaceVisTotal.secs.,dota2DB$VisibilityLost..secs.)
+gameTimeTierDB<-as.data.frame(gameTimeTierDB)
+colnames(gameTimeTierDB)<-c("GroupByElo", "Outcome", "SurfaceVisGameSecs","SurfaceVisMMSecs","SurfaceVisTotalSecs","SurfaceVislostSecs")
+plot(gameTimeTierDB, col=dota2DB$GroupByElo)
+
+# Percentage of Gaze by Tier
+
+percGazeDB<-cbind(fullDatabase$GroupByTier,fullDatabase$PercGazeGame,fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$PercGazeMM,fullDatabase$PercGazeOut)
+percGazeDB<-as.data.frame(percGazeDB)
+colnames(percGazeDB)<-c("GroupByTier", "Outcome", "PercGazeGame","PercGazeMM","PercGazeout")
+plot(percGazeDB, col=fullDatabase$GroupByTier)
+
+percGazeDB<-cbind(lolExpExpDB$GroupByTier,lolExpExpDB$PercGazeGame,lolExpExpDB$Condition, lolExpExpDB$Outcome, lolExpExpDB$PercGazeMM,lolExpExpDB$PercGazeOut)
+percGazeDB<-as.data.frame(percGazeDB)
+colnames(percGazeDB)<-c("GroupByTier", "Outcome", "PercGazeGame","PercGazeMM","PercGazeout")
+plot(percGazeDB, col=lolExpExpDB$GroupByTier)
+
+percGazeDB<-cbind(lolExpNovDB$GroupByTier,lolExpNovDB$PercGazeGame,lolExpNovDB$Condition, lolExpNovDB$Outcome, lolExpNovDB$PercGazeMM,lolExpNovDB$PercGazeOut)
+percGazeDB<-as.data.frame(percGazeDB)
+colnames(percGazeDB)<-c("GroupByTier","Outcome", "PercGazeGame","PercGazeMM","PercGazeout")
+plot(percGazeDB, col=lolExpNovDB$GroupByTier)
+
+percGazeDB<-cbind(lolNovicesDB$PercGazeGame,lolNovicesDB$Condition, lolNovicesDB$Outcome, lolNovicesDB$PercGazeMM,lolNovicesDB$PercGazeOut)
+percGazeDB<-as.data.frame(percGazeDB)
+colnames(percGazeDB)<-c("Outcome", "PercGazeGame","PercGazeMM","PercGazeout")
+plot(percGazeDB)
+
+percGazeDB<-cbind(dota2DB$GroupByElo,dota2DB$PercGazeGame,dota2DB$Condition, dota2DB$Outcome, dota2DB$PercGazeMM,dota2DB$PercGazeOut)
+percGazeDB<-as.data.frame(percGazeDB)
+colnames(percGazeDB)<-c("GroupByElo", "Outcome", "PercGazeGame","PercGazeMM","PercGazeout")
+plot(percGazeDB, col=dota2DB$GroupByElo)
+
+# Number of fixations by Tier
+
+numberFixationsDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Outcome, fullDatabase$NrFixNOMM,fullDatabase$NrFixationsMM)
+numberFixationsDB<-as.data.frame(numberFixationsDB)
+colnames(numberFixationsDB)<-c("GroupByTier", "Outcome", "NrFixationsGame","NrFixationsMM")
+plot(numberFixationsDB, col=fullDatabase$GroupByTier)
+
+numberFixationsDB<-cbind(lolExpExpDB$GroupByTier,lolExpExpDB$Outcome, lolExpExpDB$NrFixNOMM,lolExpExpDB$NrFixationsMM)
+numberFixationsDB<-as.data.frame(numberFixationsDB)
+colnames(numberFixationsDB)<-c("GroupByTier", "Outcome", "NrFixationsGame","NrFixationsMM")
+plot(numberFixationsDB, col=lolExpExpDB$GroupByTier)
+
+numberFixationsDB<-cbind(lolExpNovDB$GroupByTier, lolExpNovDB$Outcome, lolExpNovDB$NrFixNOMM,lolExpNovDB$NrFixationsMM)
+numberFixationsDB<-as.data.frame(numberFixationsDB)
+colnames(numberFixationsDB)<-c("GroupByTier", "Outcome", "TotalFixationsGame", "NrFixationsMM")
+plot(numberFixationsDB, col=lolExpNovDB$GroupByTier)
+
+numberFixationsDB<-cbind(lolNovicesDB$Outcome, lolNovicesDB$NrFixNOMM,lolNovicesDB$NrFixationsMM)
+numberFixationsDB<-as.data.frame(numberFixationsDB)
+colnames(numberFixationsDB)<-c( "Outcome", "TotalFixationsGame", "NrFixationsMM")
+plot(numberFixationsDB)
+
+numberFixationsDB<-cbind(dota2DB$GroupByElo, dota2DB$Outcome, dota2DB$NrFixNOMM,dota2DB$NrFixationsMM)
+numberFixationsDB<-as.data.frame(numberFixationsDB)
+colnames(numberFixationsDB)<-c("GroupByElo", "Outcome", "TotalFixationsGame", "NrFixationsMM")
+plot(numberFixationsDB, col=dota2DB$GroupByElo)
+
+# Number of Saccades by Tier
+
+numberSaccadesDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$SaccadesMap,fullDatabase$SaccadesMM)
+numberSaccadesDB<-as.data.frame(numberSaccadesDB)
+colnames(numberSaccadesDB)<-c("GroupByTier", "Condition", "Outcome", "SaccadesGame","SaccadesMM")
+plot(numberSaccadesDB, col=fullDatabase$GroupByTier)
+
+numberSaccadesDB<-cbind(lolExpExpDB$GroupByTier, lolExpExpDB$Outcome, lolExpExpDB$SaccadesMap,lolExpExpDB$SaccadesMM)
+numberSaccadesDB<-as.data.frame(numberSaccadesDB)
+colnames(numberSaccadesDB)<-c("GroupByTier", "Outcome", "SaccadesGame","SaccadesMM")
+plot(numberSaccadesDB, col=lolExpExpDB$GroupByTier)
+
+numberSaccadesDB<-cbind(lolExpNovDB$GroupByTier,lolExpNovDB$Outcome, lolExpNovDB$SaccadesMap,lolExpNovDB$SaccadesMM)
+numberSaccadesDB<-as.data.frame(numberSaccadesDB)
+colnames(numberSaccadesDB)<-c("GroupByTier", "Outcome", "SaccadesGame","SaccadesMM")
+plot(numberSaccadesDB, col=lolExpNovDB$GroupByTier)
+
+numberSaccadesDB<-cbind(lolNovicesDB$Outcome, lolNovicesDB$SaccadesMap,lolNovicesDB$SaccadesMM)
+numberSaccadesDB<-as.data.frame(numberSaccadesDB)
+colnames(numberSaccadesDB)<-c("Outcome", "SaccadesGame","SaccadesMM")
+plot(numberSaccadesDB)
+
+numberSaccadesDB<-cbind(dota2DB$GroupByElo, dota2DB$Outcome, dota2DB$SaccadesMap,dota2DB$SaccadesMM)
+numberSaccadesDB<-as.data.frame(numberSaccadesDB)
+colnames(numberSaccadesDB)<-c("GroupByElo","Outcome", "SaccadesGame","SaccadesMM")
+plot(numberSaccadesDB, col=dota2DB$GroupByElo)
+
+# Relation saccade-fixation by Tier
+
+SacFixRatioDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Outcome, fullDatabase$SacFixRatioMap, fullDatabase$SacFixRatioMM)
+SacFixRatioDB<-as.data.frame(SacFixRatioDB)
+colnames(SacFixRatioDB)<-c("GroupByTier", "Outcome", "sac-fix ratio game","sac-fix ratio mimimap")
+plot(SacFixRatioDB, col=fullDatabase$GroupByTier)
+
+SacFixRatioDB<-cbind(lolExpExpDB$GroupByTier, lolExpExpDB$Outcome, lolExpExpDB$SacFixRatioMap, lolExpExpDB$SacFixRatioMM)
+SacFixRatioDB<-as.data.frame(SacFixRatioDB)
+colnames(SacFixRatioDB)<-c("GroupByTier", "Outcome", "sac-fix ratio game","sac-fix ratio mimimap")
+plot(SacFixRatioDB, col=lolExpExpDB$GroupByTier)
+
+SacFixRatioDB<-cbind(lolExpNovDB$GroupByTier, lolExpNovDB$Outcome, lolExpNovDB$SacFixRatioMap, lolExpNovDB$SacFixRatioMM)
+SacFixRatioDB<-as.data.frame(SacFixRatioDB)
+colnames(SacFixRatioDB)<-c("GroupByTier", "Outcome", "sac-fix ratio game","sac-fix ratio mimimap")
+plot(SacFixRatioDB, col=lolExpNovDB$GroupByTier)
+
+SacFixRatioDB<-cbind(lolNovicesDB$Outcome, lolNovicesDB$SacFixRatioMap, lolNovicesDB$SacFixRatioMM)
+SacFixRatioDB<-as.data.frame(SacFixRatioDB)
+colnames(SacFixRatioDB)<-c("Outcome", "sac-fixratioGame","sac-fixratioMM")
+plot(SacFixRatioDB)
+
+SacFixRatioDB<-cbind(dota2DB$GroupByElo,dota2DB$Condition, dota2DB$Outcome, dota2DB$SacFixRatioMap, dota2DB$SacFixRatioMM)
+SacFixRatioDB<-as.data.frame(SacFixRatioDB)
+colnames(SacFixRatioDB)<-c("GroupByElo", "Outcome", "sac-fixratioGame","sac-fixratioMM")
+plot(SacFixRatioDB, col=dota2DB$GroupByElo)
+
+# Relation fixation-time by Tier
+
+ratioSacTimeFixTime<-cbind(fullDatabase$GroupByTier, fullDatabase$Outcome, fullDatabase$ratioFixTimeGame, fullDatabase$ratioFixTimeMM, fullDatabase$ratioSacTimeGame, fullDatabase$ratioSacTimeMM)
+ratioSacTimeFixTime<-as.data.frame(ratioSacTimeFixTime)
+colnames(ratioSacTimeFixTime)<-c("GroupByTier", "Outcome","Fix-timeRatioGame","Fix-timeRatioMM", "Sac-timeRatioGame","Sac-timeRatioMM")
+plot(ratioSacTimeFixTime, col=fullDatabase$GroupByTier)
+
+ratioSacTimeFixTime<-cbind(lolExpExpDB$GroupByTier, lolExpExpDB$Outcome, lolExpExpDB$ratioFixTimeGame, lolExpExpDB$ratioFixTimeMM, lolExpExpDB$ratioSacTimeGame, lolExpExpDB$ratioSacTimeMM)
+ratioSacTimeFixTime<-as.data.frame(ratioSacTimeFixTime)
+colnames(ratioSacTimeFixTime)<-c("GroupByTier", "Outcome","Fix-timeRatioGame","Fix-timeRatioMM", "Sac-timeRatioGame","Sac-timeRatioMM")
+plot(ratioSacTimeFixTime, col=lolExpExpDB$GroupByTier)
+
+ratioSacTimeFixTime<-cbind(lolExpNovDB$GroupByTier, lolExpNovDB$Outcome, lolExpNovDB$ratioFixTimeGame, lolExpNovDB$ratioFixTimeMM, lolExpNovDB$ratioSacTimeGame, lolExpNovDB$ratioSacTimeMM)
+ratioSacTimeFixTime<-as.data.frame(ratioSacTimeFixTime)
+colnames(ratioSacTimeFixTime)<-c("GroupByTier", "Outcome","Fix-timeRatioGame","Fix-timeRatioMM", "Sac-timeRatioGame","Sac-timeRatioMM")
+plot(ratioSacTimeFixTime, col=lolExpNovDB$GroupByTier)
+
+ratioSacTimeFixTime<-cbind(lolNovicesDB$Outcome, lolNovicesDB$ratioFixTimeGame, lolNovicesDB$ratioFixTimeMM, lolNovicesDB$ratioSacTimeGame, lolNovicesDB$ratioSacTimeMM)
+ratioSacTimeFixTime<-as.data.frame(ratioSacTimeFixTime)
+colnames(ratioSacTimeFixTime)<-c("Outcome","Fix-timeRatioGame","Fix-timeRatioMM", "Sac-timeRatioGame","Sac-timeRatioMM")
+plot(ratioSacTimeFixTime)
+
+ratioSacTimeFixTime<-cbind(dota2DB$GroupByElo, dota2DB$Outcome, dota2DB$ratioFixTimeGame, dota2DB$ratioFixTimeMM, dota2DB$ratioSacTimeGame, dota2DB$ratioSacTimeMM)
+ratioSacTimeFixTime<-as.data.frame(ratioSacTimeFixTime)
+colnames(ratioSacTimeFixTime)<-c("GroupByElo", "Outcome","Fix-timeRatioGame","Fix-timeRatioMM", "Sac-timeRatioGame","Sac-timeRatioMM")
+plot(ratioSacTimeFixTime, col=dota2DB$GroupByElo)
 
 ##### Full DB plots and distributions #####
 
+# Depiction of the outcomes in a pie chart
 outcomeCount<-table(fullDatabase$Outcome)
 outcomePerc<-round(100*outcomeCount/sum(outcomeCount),2)
 pie(outcomePerc, edges=500, radius=1, main="Outcome of the games", labels=paste(outcomePerc,"%"), col=heat.colors(length(outcomeCount)))
 legend("topright", c("lost","win"), cex=1, fill=heat.colors(length(outcomeCount)))
 
-fixGameDist<-na.omit(fullDatabase$NrFixNOMM)
-h<-hist(fullDatabase$NrFixNOMM, breaks=10, col="red", xlab="Number of fixations", ylab = "Frequency of occurence", main="Histogram with Normal Curve") 
-xfit<-seq(min(fixGameDist),max(fixGameDist),length=50) #generates a sequence with seq
-yfit<-dnorm(xfit,mean=mean(fixGameDist),sd=sd(fixGameDist)) #gets the normal distribution dnorm
-yfit <- yfit*diff(h$mids[1:2])*length(x) 
-lines(xfit, yfit, col="blue", lwd=2)
+# Depiction of the outcomes by game in a pie chart
+outcomeCount<-table(lolExpExpDB$Outcome)
+outcomePerc<-round(100*outcomeCount/sum(outcomeCount),2)
+pie(outcomePerc, edges=500, radius=1, main="Outcome of experts-experts", labels=paste(outcomePerc,"%"), col=heat.colors(length(outcomeCount)))
+legend("topright", c("lost","win"), cex=1, fill=heat.colors(length(outcomeCount)))
 
+# Depiction of the outcomes by game in a pie chart
+outcomeCount<-table(lolExpNovDB$Outcome)
+outcomePerc<-round(100*outcomeCount/sum(outcomeCount),2)
+pie(outcomePerc, edges=500, radius=1, main="Outcome of experts-novices", labels=paste(outcomePerc,"%"), col=heat.colors(length(outcomeCount)))
+legend("topright", c("lost","win"), cex=1, fill=heat.colors(length(outcomeCount)))
+
+# Depiction of the outcomes by game in a pie chart
+outcomeCount<-table(lolNovicesDB$Outcome)
+outcomePerc<-round(100*outcomeCount/sum(outcomeCount),2)
+pie(outcomePerc, edges=500, radius=1, main="Outcome of Novices", labels=paste(outcomePerc,"%"), col=heat.colors(length(outcomeCount)))
+legend("topright", c("lost","win"), cex=1, fill=heat.colors(length(outcomeCount)))
+
+# Depiction of the outcomes by game in a pie chart
+outcomeCount<-table(dota2DB$Outcome)
+outcomePerc<-round(100*outcomeCount/sum(outcomeCount),2)
+pie(outcomePerc, edges=500, radius=1, main="Outcome of DOTA2", labels=paste(outcomePerc,"%"), col=heat.colors(length(outcomeCount)))
+legend("topright", c("lost","win"), cex=1, fill=heat.colors(length(outcomeCount)))
+
+# Distribution of of sac/fix ratio in the game for LoL experts under Expert condition
+distribution_hist(lolExpExpDB$SacFixRatioMap,xlab=" Expert-Expert Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of of sac/fix ratio in the mini-map for LoL experts under Expert condition
+distribution_hist(lolExpExpDB$SacFixRatioMM,xlab="Expert-Expert Saccade-fixation ratio in minimap",ylab="Frequency of occurence")
+
+# Distribution of sac/fix ratio in the game for LoL experts under novice condition
+distribution_hist(lolExpNovDB$SacFixRatioMap,xlab="Expert-novice Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/fix ratio in the mini-map for LoL experts under novice condition
+distribution_hist(lolExpNovDB$SacFixRatioMM,xlab="Expert-novice Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/fix ratio in the game for LoL novices
+distribution_hist(lolNovicesDB$SacFixRatioMap,xlab="Novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/fix ratio in the mini-map for LoL novices
+distribution_hist(lolNovicesDB$SacFixRatioMM,xlab="Novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/fix ratio in the game for DOTA2 experts
+distribution_hist(dota2DB$SacFixRatioMap,xlab="DOTA2 Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/fix ratio in the mini-map for DOTA2 experts
+distribution_hist(dota2DB$SacFixRatioMM,xlab="DOTA2 Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of fix/time ratio in the game for LoL experts under the expert condition
+distribution_hist(lolExpExpDB$ratioFixTimeGame,xlab="Expert-expert Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of fix/time ratio in the mini-map for LoL experts under the expert condition
+distribution_hist(lolExpExpDB$ratioFixTimeMM,xlab="Expert-expert Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of fix/time ratio in the game for LoL experts under the novice condition
+distribution_hist(lolExpNovDB$ratioFixTimeGame,xlab="Expert-novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of fix/time ratio in the mini-map for LoL experts under the novice condition
+distribution_hist(lolExpNovDB$ratioFixTimeMM,xlab="Expert-novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of fix/time ratio in the game for LoL novices
+distribution_hist(lolNovicesDB$ratioFixTimeGame,xlab="Novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of fix/time ratio in the mini-map for LoL novices 
+distribution_hist(lolNovicesDB$ratioFixTimeMM,xlab="Novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of fix/time ratio in the game for DOTA2 experts
+distribution_hist(dota2DB$ratioFixTimeGame,xlab="DOTA2 Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of fix/time ratio in the mini-map for DOTA2 experts
+distribution_hist(dota2DB$ratioFixTimeMM,xlab="DOTA2 Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/time ratio in the game for LoL experts under the expert condition
+distribution_hist(lolExpExpDB$ratioSacTimeGame,xlab="Expert-expert Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/time ratio in the mini-map for LoL experts under the expert condition
+distribution_hist(lolExpExpDB$ratioSacTimeMM,xlab="Expert-expert Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/time ratio in the game for LoL experts under the novice condition
+distribution_hist(lolExpNovDB$ratioSacTimeGame,xlab="Expert-novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/time ratio in the mini-map for LoL experts under the novice condition
+distribution_hist(lolExpNovDB$ratioSacTimeMM,xlab="Expert-novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/time ratio in the game for LoL novices
+distribution_hist(lolNovicesDB$ratioSacTimeGame,xlab="Novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/time ratio in the mini-map for LoL novices 
+distribution_hist(lolNovicesDB$ratioSacTimeMM,xlab="Novices Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/time ratio in the game for DOTA2 experts
+distribution_hist(dota2DB$ratioSacTimeGame,xlab="DOTA2 Saccade-fixation ratio in game",ylab="Frequency of occurence")
+
+# Distribution of sac/time ratio in the mini-map for DOTA2 experts
+distribution_hist(dota2DB$ratioSacTimeMM,xlab="DOTA2 Saccade-fixation ratio in game",ylab="Frequency of occurence")
 
 ##### Relational plots #####
 
@@ -125,97 +547,36 @@ lines(xfit, yfit, col="blue", lwd=2)
 
 #plot(fullDatabase$Expertise~fullDatabase$Outcome,type = "", main="expertise vs outcome", xlab="expertise", ylab="outcome")
 
+##### Spliting databases for LoL Expertise groups #####
 
-#####Spliting databases for LoL Experts#####
+group_A<-subset(lolExpertsDB, GroupByTier=="A")
+group_B<-subset(lolExpertsDB, GroupByTier=="B")
+group_C<-subset(lolExpertsDB, GroupByTier=="C")
+group_D<-subset(lolExpertsDB, GroupByTier=="D")
+group_E<-subset(lolExpertsDB, GroupByTier=="E")
+group_F<-subset(lolExpertsDB, GroupByTier=="F")
+group_G<-subset(lolExpertsDB, GroupByTier=="G")
 
-group_a<-subset(fullDatabase, GroupByTier=="A")
-group_b<-subset(fullDatabase, GroupByTier=="B")
-group_c<-subset(fullDatabase, GroupByTier=="C")
-group_d<-subset(fullDatabase, GroupByTier=="D")
-group_e<-subset(fullDatabase, GroupByTier=="E")
-group_f<-subset(fullDatabase, GroupByTier=="F")
-group_g<-subset(fullDatabase, GroupByTier=="G")
+group_silver<-subset(lolExpertsDB, Tier=="silver")
+group_gold<-subset(lolExpertsDB, Tier=="gold")
+group_diamond<-subset(lolExpertsDB, Tier=="diamond")
 
-group_silver<-subset(fullDatabase, Tier=="silver")
-group_gold<-subset(fullDatabase, Tier=="gold")
-group_diamond<-subset(fullDatabase, Tier=="diamond")
+##### Spliting databases for DOTA Expertise groups #####
 
-expert_expertDB<-subset(fullDatabase, Condition=="expert")
-expert_noviceDB<-subset(fullDatabase, Condition=="novice")
+group_A<-subset(dota2DB, GroupByElo=="A")
+group_B<-subset(dota2DB, GroupByElo=="B")
+group_C<-subset(dota2DB, GroupByElo=="C")
+group_D<-subset(dota2DB, GroupByElo=="D")
+group_E<-subset(dota2DB, GroupByElo=="E")
 
-group_a_fixmap<-group_a$NrFixNOMM
-group_b_fixmap<-group_b$NrFixNOMM
-group_c_fixmap<-group_c$NrFixNOMM
-group_d_fixmap<-group_d$NrFixNOMM
-group_e_fixmap<-group_e$NrFixNOMM
-group_f_fixmap<-group_f$NrFixNOMM
-group_g_fixmap<-group_g$NrFixNOMM
+##### Spliting databases for LoL Expertise groups #####
 
+expert_tutorialDB<-subset(lolNovicesDB, Condition=="tutorial")
+expert_noviceDB<-subset(lolNovicesDB, Condition=="novice")
+expert_ev1DB<-subset(lolNovicesDB, Condition=="evaluation1")
+expert_ev2DB<-subset(lolNovicesDB, Condition=="evaluation2")
 
-
-
-##### Spliting databases for DOTA Experts#####
-
-group_a<-subset(fullDatabase, GroupByTier=="A")
-group_b<-subset(fullDatabase, GroupByTier=="B")
-group_c<-subset(fullDatabase, GroupByTier=="C")
-group_d<-subset(fullDatabase, GroupByTier=="D")
-group_e<-subset(fullDatabase, GroupByTier=="E")
-
-##### Spliting databases for LoL Novices#####
-
-expert_tutorialDB<-subset(fullDatabase, Condition=="tutorial")
-expert_noviceDB<-subset(fullDatabase, Condition=="novice")
-expert_ev1DB<-subset(fullDatabase, Condition=="evaluation1")
-expert_ev2DB<-subset(fullDatabase, Condition=="evaluation2")
-
-
-##### Getting the game Time#####
-
-gameTimeTierDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$SurfaceVisGame.secs.,fullDatabase$SurfaceVisMM.secs.,fullDatabase$TotalSurfaceVisTotal.secs.,fullDatabase$VisibilityLost..secs.)
-#gameTimeTierDB<-na.omit(gameTimeTierDB)
-gameTimeTierDB<-as.data.frame(gameTimeTierDB)
-colnames(gameTimeTierDB)<-c("GroupByTier", "Condition", "Outcome", "SurfaceVisGameSecs","SurfaceVisMMSecs","SurfaceVisTotalSecs","SurfaceVislostSecs")
-
-plot(gameTimeTierDB, col=fullDatabase$GroupByTier)
-
-##### Percentage of Gaze by Tier#####
-
-percGazeDB<-cbind(fullDatabase$GroupByTier,fullDatabase$PercGazeGame,fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$PercGazeMM,fullDatabase$PercGazeOut)
-#percGazeDB<-na.omit(percGazeDB)
-percGazeDB<-as.data.frame(percGazeDB)
-colnames(percGazeDB)<-c("GroupByTier", "Condition", "Outcome", "PercGazeGame","PercGazeMM","PercGazeout")
-
-plot(percGazeDB, col=fullDatabase$GroupByTier)
-
-##### Number of fixations by Tier#####
-
-numberFixationsDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$NrFixationsGame, fullDatabase$NrFixNOMM,fullDatabase$NrFixationsMM)
-#numberFixationsDB<-na.omit(numberFixationsDB)
-numberFixationsDB<-as.data.frame(numberFixationsDB)
-colnames(numberFixationsDB)<-c("GroupByTier", "Condition", "Outcome", "TotalFixationsGame", "NrFixationsMap","NrFixationsMM")
-
-plot(numberFixationsDB, col=fullDatabase$GroupByTier)
-
-##### Number of Saccades by Tier#####
-
-numberSaccadesDB<-cbind(fullDatabase$GroupByTier, fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$SaccadesMap,fullDatabase$SaccadesMM)
-#numberSaccadesDB<-na.omit(numberSaccadesDB)
-numberSaccadesDB<-as.data.frame(numberSaccadesDB)
-colnames(numberSaccadesDB)<-c("GroupByTier", "Condition", "Outcome", "SaccadesGame","SaccadesMM")
-
-plot(numberSaccadesDB, col=fullDatabase$GroupByTier)
-
-##### Relation saccade-fixation by Tier#####
-
-SacFixRatioDB<-cbind(fullDatabase$GroupByTier,fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$SacFixRatioMap, fullDatabase$SacFixRatioMM)
-#SacFixRatioDB<-na.omit(SacFixRatioDB)
-SacFixRatioDB<-as.data.frame(SacFixRatioDB)
-colnames(SacFixRatioDB)<-c("GroupByTier", "Condition", "Outcome", "SacFixRatioGame","SacFixRatioMM")
-
-plot(SacFixRatioDB, col=fullDatabase$GroupByTier)
-
-##### Average (statistical mean) of fixations and saccades per game#####
+##### Average (statistical mean) of fixations and saccades per game #####
 
 meanSaccadesMap<-numberSaccadesDB$SaccadesGame/gameTimeTierDB$SurfaceVisGameSecs
 meanSaccadesMM<-numberSaccadesDB$SaccadesMM/gameTimeTierDB$SurfaceVisMMSecs
@@ -239,22 +600,9 @@ colnames(meanFixTime)<-c("GroupByTier","Condition", "Outcome", "MeanFixDurationM
 
 plot(meanFixTime, col=fullDatabase$GroupByTier)
 
-##### Percentage of fixations according to time#####
-
-#perc1<-avgSacsFixTierTime$AvgFixMap*numberFixationsDB$NrFixationsMap
-#perc<-(sqrt(perc1)/sqrt(gameTimeTierDB$SurfaceVisGameSecs)) #bad
-
-#View(perc1)
 
 
-##### Percentage of gaze according to time #####
-
-
-
-#####Average of playing time according to game and tier#####
-
-
-#####Print exploratory plots##### 
+##### Print plots##### 
 
 png('GameTierExpl.png', width = 1024, height = 768, units = "px", pointsize = 13)
 plot(gameTimeTierDB, col=fullDatabase$GroupByTier)
@@ -381,29 +729,5 @@ cluster.stats(d, fit1$cluster, fit2$cluster)
 ##### Anova ######
 
 
-datAnova<-data.frame(cbind(group_f_fixmap,group_g_fixmap))
-datAnova<-data.frame(datAnova)
-summary(datAnova)
-
-write.table(summary(datAnova),file="dataFG.csv",sep=";", dec=",")
-
-stackDatAnova<-stack(datAnova)
-
-groupsAnova<-aov(values~ind, data=stackDatAnova)
-
-exportAnova<-as.matrix(summary(groupsAnova))
-drop1(groupsAnova,~.,test="F")
-write.table(exportAnova,file="anovaFG.csv",sep=";", dec=",")
-
-print(groupsAnova)
-
-png('anovaFG.png', width = 1024, height = 768, units = "px", pointsize = 13)
-layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page
-plot (groupsAnova)
-dev.off()     
-
 
 ########
-
-
-
