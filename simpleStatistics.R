@@ -35,23 +35,63 @@ outliers.na<-function (array){
      array     
 }
 
-# Anova
+# Anova with two variables
 
-quick.anova<-function(var1, var2, var3){
+quick.anova<-function(var1, var2){
      
-     Data <- data.frame(Value=c(var1,var2, var3), Group=factor(rep(c("var1", "var2", "var3"), times=c(length(var1), length(var2), length(var3)))))
+     Data <- data.frame(Value=c(var1,var2), Group=factor(rep(c("variable1","variable2"), times=c(length(var1), length(var2)))))
      print (summary(Data))
-     an1<-aov(Value~Group, Data)
-     tu<-TukeyHSD(an1)
-     anova(an1)
-     tu
+     an<-aov(Value~Group, Data)
+     a<-anova(an)
+     layout(matrix(c(1,2,3,4),2,2)) # optional layout
+     plot(an)
+     return(a)
 }
 
-quick.anova(group_silver$ratioSacTimeGame,group_gold$ratioSacTimeGame,group_diamond$ratioSacTimeGame)
+quick.anova7<-function(var1, var2, var3=NULL, var4=NULL, var5=NULL, var6=NULL, var7=NULL){
+     
+     Data <- data.frame(Value=c(var1, var2, var3, var4, var5, var6, var7), Group=factor(rep(c("variable1","variable2","variable3","variable4", "variable5", "variable6","variable7"), times=c(length(var1), length(var2), length(var3), length(var4), length(var5), length(var6), length(var7)))))
+     print (summary(Data))
+     an<-aov(Value~Group, Data)
+     a<-anova(an)
+     layout(matrix(c(1,2,3,4),2,2)) # optional layout
+     plot(an)
+     return(a)
+}
+
+# TukeyHSD with two variables
+
+quick.tukeyHSD<-function(var1, var2){
+     
+     Data <- data.frame(Value=c(var1,var2), Group=factor(rep(c("variable1","variable2"), times=c(length(var1), length(var2)))))
+     print (summary(Data))
+     an<-aov(Value~Group, Data)
+     tuHSD<-TukeyHSD(an)
+     a<-anova(an)
+     layout(matrix(c(1,2,3,4),2,2)) # optional layout
+     return(tuHSD)
+     print (tuHSD)
+}
+
+quick.tukeyHSD7<-function(var1, var2, var3=NULL, var4=NULL, var5=NULL, var6=NULL, var7=NULL){
+     
+     Data <- data.frame(Value=c(var1, var2, var3, var4, var5, var6, var7), Group=factor(rep(c("variable1","variable2","variable3","variable4", "variable5", "variable6", "variable7"), times=c(length(var1), length(var2), length(var3), length(var4), length(var5), length(var6), length(var7)))))
+     print (summary(Data))
+     an<-aov(Value~Group, Data)
+     tuHSD<-TukeyHSD(an)
+     a<-anova(an)
+     layout(matrix(c(1,2,3,4),2,2)) # optional layout
+     return(tuHSD)
+     print (tuHSD)
+}
+
 
 ##### Getting the data #####
 
 library("graphics", lib.loc="C:/Program Files/R/R-3.2.1/library")
+library("Hmisc")
+library("polycor")
+library("corrgram")
 
 #setwd("C:/Users/Mauro/Dropbox/Analysis")
 #setwd("C:/Users/ru25tas/Dropbox/Analysis")
@@ -547,34 +587,50 @@ distribution_hist(dota2DB$ratioSacTimeMM,xlab="DOTA2 Saccade-fixation ratio in g
 
 #plot(fullDatabase$Expertise~fullDatabase$Outcome,type = "", main="expertise vs outcome", xlab="expertise", ylab="outcome")
 
-##### Spliting databases for LoL Expertise groups #####
+##### Spliting databases for Expertise groups #####
 
-group_A<-subset(lolExpertsDB, GroupByTier=="A")
-group_B<-subset(lolExpertsDB, GroupByTier=="B")
-group_C<-subset(lolExpertsDB, GroupByTier=="C")
-group_D<-subset(lolExpertsDB, GroupByTier=="D")
-group_E<-subset(lolExpertsDB, GroupByTier=="E")
-group_F<-subset(lolExpertsDB, GroupByTier=="F")
-group_G<-subset(lolExpertsDB, GroupByTier=="G")
+# LoL expertise levels - experts
 
-group_silver<-subset(lolExpertsDB, Tier=="silver")
-group_gold<-subset(lolExpertsDB, Tier=="gold")
-group_diamond<-subset(lolExpertsDB, Tier=="diamond")
+lolExpGroup_A<-subset(lolExpExpDB, GroupByTier=="A")
+lolExpGroup_B<-subset(lolExpExpDB, GroupByTier=="B")
+lolExpGroup_C<-subset(lolExpExpDB, GroupByTier=="C")
+lolExpGroup_D<-subset(lolExpExpDB, GroupByTier=="D")
+lolExpGroup_E<-subset(lolExpExpDB, GroupByTier=="E")
+lolExpGroup_F<-subset(lolExpExpDB, GroupByTier=="F")
+lolExpGroup_G<-subset(lolExpExpDB, GroupByTier=="G")
 
-##### Spliting databases for DOTA Expertise groups #####
+lolExpGroup_silver<-subset(lolExpExpDB, Tier=="silver")
+lolExpGroup_gold<-subset(lolExpExpDB, Tier=="gold")
+lolExpGroup_diamond<-subset(lolExpExpDB, Tier=="diamond")
 
-group_A<-subset(dota2DB, GroupByElo=="A")
-group_B<-subset(dota2DB, GroupByElo=="B")
-group_C<-subset(dota2DB, GroupByElo=="C")
-group_D<-subset(dota2DB, GroupByElo=="D")
-group_E<-subset(dota2DB, GroupByElo=="E")
+# LoL expertise levels - novice
 
-##### Spliting databases for LoL Expertise groups #####
+lolNovGroup_A<-subset(lolExpNovDB, GroupByTier=="A")
+lolNovGroup_B<-subset(lolExpNovDB, GroupByTier=="B")
+lolNovGroup_C<-subset(lolExpNovDB, GroupByTier=="C")
+lolNovGroup_D<-subset(lolExpNovDB, GroupByTier=="D")
+lolNovGroup_E<-subset(lolExpNovDB, GroupByTier=="E")
+lolNovGroup_F<-subset(lolExpNovDB, GroupByTier=="F")
+lolNovGroup_G<-subset(lolExpNovDB, GroupByTier=="G")
 
-expert_tutorialDB<-subset(lolNovicesDB, Condition=="tutorial")
-expert_noviceDB<-subset(lolNovicesDB, Condition=="novice")
-expert_ev1DB<-subset(lolNovicesDB, Condition=="evaluation1")
-expert_ev2DB<-subset(lolNovicesDB, Condition=="evaluation2")
+lolNovGroup_silver<-subset(lolExpNovDB, Tier=="silver")
+lolNovGroup_gold<-subset(lolExpNovDB, Tier=="gold")
+lolNovGroup_diamond<-subset(lolExpNovDB, Tier=="diamond")
+
+# Dota2 expertise levels
+
+dotaGroup_A<-subset(dota2DB, GroupByElo=="A")
+dotaGroup_B<-subset(dota2DB, GroupByElo=="B")
+dotaGroup_C<-subset(dota2DB, GroupByElo=="C")
+dotaGroup_D<-subset(dota2DB, GroupByElo=="D")
+dotaGroup_E<-subset(dota2DB, GroupByElo=="E")
+
+# Novice development
+
+novice_tutorialDB<-subset(lolNovicesDB, Condition=="tutorial")
+novice_noviceDB<-subset(lolNovicesDB, Condition=="novice")
+novice_ev1DB<-subset(lolNovicesDB, Condition=="evaluation1")
+novice_ev2DB<-subset(lolNovicesDB, Condition=="evaluation2")
 
 ##### Average (statistical mean) of fixations and saccades per game #####
 
@@ -685,9 +741,6 @@ range_vision_lost<-c(mn_vision_lost-(3*sd_vision_lost),(mn_vision_lost+(3*sd_vis
 
 
 
-##### Chi squared ######
-
-chisq.test(expert_expertDB$NrFixNOMM,expert_noviceDB$NrFixationsMM)
 
 ##### Linear regressions #####
 
@@ -726,8 +779,217 @@ plotcluster(scaled_data, fit$cluster)
 library(fpc)
 cluster.stats(d, fit1$cluster, fit2$cluster)
 
-##### Anova ######
+##### Anovas ######
+
+# Lol Experts by tiers
+
+quick.anova(lolExpGroup_silver$NrFixNOMM, lolExpGroup_gold$NrFixNOMM)
+quick.anova(lolExpGroup_gold$NrFixNOMM, lolExpGroup_diamond$NrFixNOMM)
+quick.anova(lolExpGroup_silver$NrFixNOMM, lolExpGroup_diamond$NrFixNOMM)
+
+quick.anova(lolExpGroup_silver$NrFixationsMM, lolExpGroup_gold$NrFixationsMM)
+quick.anova(lolExpGroup_gold$NrFixationsMM, lolExpGroup_diamond$NrFixationsMM)
+quick.anova(lolExpGroup_silver$NrFixationsMM, lolExpGroup_diamond$NrFixationsMM)
+
+quick.anova(lolExpGroup_silver$SaccadesMap, lolExpGroup_gold$SaccadesMap)
+quick.anova(lolExpGroup_gold$SaccadesMap, lolExpGroup_diamond$SaccadesMap)
+quick.anova(lolExpGroup_silver$SaccadesMap, lolExpGroup_diamond$SaccadesMap)
+
+quick.anova(lolExpGroup_silver$SaccadesMM, lolExpGroup_gold$SaccadesMM)
+quick.anova(lolExpGroup_gold$SaccadesMM, lolExpGroup_diamond$SaccadesMM)
+quick.anova(lolExpGroup_silver$SaccadesMM, lolExpGroup_diamond$SaccadesMM)
+
+quick.anova(lolExpGroup_silver$ratioFixTimeGame, lolExpGroup_gold$ratioFixTimeGame)
+quick.anova(lolExpGroup_gold$ratioFixTimeGame, lolExpGroup_diamond$ratioFixTimeGame)
+quick.anova(lolExpGroup_silver$ratioFixTimeGame, lolExpGroup_diamond$ratioFixTimeGame)
+
+quick.anova(lolExpGroup_silver$ratioFixTimeMM, lolExpGroup_gold$ratioFixTimeMM)
+quick.anova(lolExpGroup_gold$ratioFixTimeMM, lolExpGroup_diamond$ratioFixTimeMM)
+quick.anova(lolExpGroup_silver$ratioFixTimeMM, lolExpGroup_diamond$ratioFixTimeMM)
+
+quick.anova(lolExpGroup_silver$ratioSacTimeGame, lolExpGroup_gold$ratioSacTimeGame)
+quick.anova(lolExpGroup_gold$ratioSacTimeGame, lolExpGroup_diamond$ratioSacTimeGame)
+quick.anova(lolExpGroup_silver$ratioSacTimeGame, lolExpGroup_diamond$ratioSacTimeGame)
+
+quick.anova(lolExpGroup_silver$ratioSacTimeMM, lolExpGroup_gold$ratioSacTimeMM)
+quick.anova(lolExpGroup_gold$ratioSacTimeMM, lolExpGroup_diamond$ratioSacTimeMM)
+quick.anova(lolExpGroup_silver$ratioSacTimeMM, lolExpGroup_diamond$ratioSacTimeMM)
+
+quick.anova(lolExpGroup_silver$SacFixRatioMap, lolExpGroup_gold$SacFixRatioMap)
+quick.anova(lolExpGroup_gold$SacFixRatioMap, lolExpGroup_diamond$SacFixRatioMap)
+quick.anova(lolExpGroup_silver$SacFixRatioMap, lolExpGroup_diamond$SacFixRatioMap)
+
+quick.anova(lolExpGroup_silver$SacFixRatioMM, lolExpGroup_gold$SacFixRatioMM)
+quick.anova(lolExpGroup_gold$SacFixRatioMM, lolExpGroup_diamond$SacFixRatioMM)
+quick.anova(lolExpGroup_silver$SacFixRatioMM, lolExpGroup_diamond$SacFixRatioMM)
 
 
+# Lol Experts by groups
 
-########
+quick.anova(lolExpGroup_A$NrFixNOMM, lolExpGroup_G$NrFixNOMM)
+
+quick.anova(lolExpGroup_A$NrFixationsMM, lolExpGroup_G$NrFixationsMM)
+
+quick.anova(lolExpGroup_A$SaccadesMap, lolExpGroup_G$SaccadesMap)
+
+quick.anova(lolExpGroup_A$SaccadesMM, lolExpGroup_G$SaccadesMM)
+
+quick.anova(lolExpGroup_A$ratioFixTimeGame, lolExpGroup_G$ratioFixTimeGame)
+
+quick.anova(lolExpGroup_A$ratioFixTimeMM, lolExpGroup_G$ratioFixTimeMM)
+
+quick.anova(lolExpGroup_A$ratioSacTimeGame, lolExpGroup_G$ratioSacTimeGame)
+
+quick.anova(lolExpGroup_A$ratioSacTimeMM, lolExpGroup_G$ratioSacTimeMM)
+
+quick.anova(lolExpGroup_A$SacFixRatioMap, lolExpGroup_G$SacFixRatioMap)
+
+quick.anova(lolExpGroup_A$SacFixRatioMM, lolExpGroup_G$SacFixRatioMM)
+
+# Dota by groups
+
+quick.anova(dotaGroup_A$NrFixNOMM, dotaGroup_E$NrFixNOMM)
+
+quick.anova(dotaGroup_A$NrFixationsMM, dotaGroup_E$NrFixationsMM)
+
+quick.anova(dotaGroup_A$SaccadesMap, dotaGroup_E$SaccadesMap)
+
+quick.anova(dotaGroup_A$SaccadesMM, dotaGroup_E$SaccadesMM)
+
+quick.anova(dotaGroup_A$ratioFixTimeGame, dotaGroup_E$ratioFixTimeGame)
+
+quick.anova(dotaGroup_A$ratioFixTimeMM, dotaGroup_E$ratioFixTimeMM)
+
+quick.anova(dotaGroup_A$ratioSacTimeGame, dotaGroup_E$ratioSacTimeGame)
+
+quick.anova(dotaGroup_A$ratioSacTimeMM, dotaGroup_E$ratioSacTimeMM)
+
+quick.anova(dotaGroup_A$SacFixRatioMap, dotaGroup_E$SacFixRatioMap)
+
+quick.anova(dotaGroup_A$SacFixRatioMM, dotaGroup_E$SacFixRatioMM)
+
+# Lol Novices by measure
+
+quick.anova(novice_noviceDB$NrFixNOMM, novice_ev1DB$NrFixNOMM)
+quick.anova(novice_noviceDB$NrFixNOMM, novice_ev2DB$NrFixNOMM)
+quick.anova(novice_ev1DB$NrFixNOMM, novice_ev2DB$NrFixNOMM)
+
+quick.anova(novice_noviceDB$NrFixationsMM, novice_ev1DB$NrFixationsMM)
+quick.anova(novice_noviceDB$NrFixationsMM, novice_ev2DB$NrFixationsMM)
+quick.anova(novice_ev1DB$NrFixationsMM, novice_ev2DB$NrFixationsMM)
+
+quick.anova(novice_noviceDB$SaccadesMap, novice_ev1DB$SaccadesMap)
+quick.anova(novice_noviceDB$SaccadesMap, novice_ev2DB$SaccadesMap)
+quick.anova(novice_ev1DB$SaccadesMap, novice_ev2DB$SaccadesMap)
+
+quick.anova(novice_noviceDB$SaccadesMM, novice_ev1DB$SaccadesMM)
+quick.anova(novice_noviceDB$SaccadesMM, novice_ev2DB$SaccadesMM)
+quick.anova(novice_ev1DB$SaccadesMM, novice_ev2DB$SaccadesMM)
+
+quick.anova(novice_noviceDB$ratioFixTimeGame, novice_ev1DB$ratioFixTimeGame)
+quick.anova(novice_noviceDB$ratioFixTimeGame, novice_ev2DB$ratioFixTimeGame)
+quick.anova(novice_ev1DB$ratioFixTimeGame, novice_ev2DB$ratioFixTimeGame)
+
+quick.anova(novice_noviceDB$ratioFixTimeMM, novice_ev1DB$ratioFixTimeMM)
+quick.anova(novice_noviceDB$ratioFixTimeMM, novice_ev2DB$ratioFixTimeMM)
+quick.anova(novice_ev1DB$ratioFixTimeMM, novice_ev2DB$ratioFixTimeMM)
+
+quick.anova(novice_noviceDB$ratioSacTimeGame, novice_ev1DB$ratioSacTimeGame)
+quick.anova(novice_noviceDB$ratioSacTimeGame, novice_ev2DB$ratioSacTimeGame)
+quick.anova(novice_ev1DB$ratioSacTimeGame, novice_ev2DB$ratioSacTimeGame)
+
+quick.anova(novice_noviceDB$ratioSacTimeMM, novice_ev1DB$ratioSacTimeMM)
+quick.anova(novice_noviceDB$ratioSacTimeMM, novice_ev2DB$ratioSacTimeMM)
+quick.anova(novice_ev1DB$ratioSacTimeMM, novice_ev2DB$ratioSacTimeMM)
+
+quick.anova(novice_noviceDB$SacFixRatioMap, novice_ev1DB$SacFixRatioMap)
+quick.anova(novice_noviceDB$SacFixRatioMap, novice_ev2DB$SacFixRatioMap)
+quick.anova(novice_ev1DB$SacFixRatioMap, novice_ev2DB$SacFixRatioMap)
+
+quick.anova(novice_noviceDB$SacFixRatioMM, novice_ev1DB$SacFixRatioMM)
+quick.anova(novice_noviceDB$SacFixRatioMM, novice_ev2DB$SacFixRatioMM)
+quick.anova(novice_ev1DB$SacFixRatioMM, novice_ev2DB$SacFixRatioMM)
+
+# Comparing Lol Novices and experts by tier
+
+quick.anova(lolNovGroup_silver$NrFixNOMM, novice_noviceDB$NrFixNOMM)
+quick.anova(lolNovGroup_gold$NrFixNOMM, novice_noviceDB$NrFixNOMM)
+quick.anova(lolNovGroup_diamond$NrFixNOMM, novice_noviceDB$NrFixNOMM)
+
+quick.anova(lolNovGroup_silver$NrFixationsMM, novice_noviceDB$NrFixationsMM)
+quick.anova(lolNovGroup_gold$NrFixationsMM, novice_noviceDB$NrFixationsMM)
+quick.anova(lolNovGroup_diamond$NrFixationsMM, novice_noviceDB$NrFixationsMM)
+
+quick.anova(lolNovGroup_silver$SaccadesMap, novice_noviceDB$SaccadesMap)
+quick.anova(lolNovGroup_gold$SaccadesMap, novice_noviceDB$SaccadesMap)
+quick.anova(lolNovGroup_diamond$SaccadesMap, novice_noviceDB$SaccadesMap)
+
+quick.anova(lolNovGroup_silver$SaccadesMM, novice_noviceDB$SaccadesMM)
+quick.anova(lolNovGroup_gold$SaccadesMM, novice_noviceDB$SaccadesMM)
+quick.anova(lolNovGroup_diamond$SaccadesMM, novice_noviceDB$SaccadesMM)
+
+quick.anova(lolNovGroup_silver$ratioFixTimeGame, novice_noviceDB$ratioFixTimeGame)
+quick.anova(lolNovGroup_gold$ratioFixTimeGame, novice_noviceDB$ratioFixTimeGame)
+quick.anova(lolNovGroup_diamond$ratioFixTimeGame, novice_noviceDB$ratioFixTimeGame)
+
+quick.anova(lolNovGroup_silver$ratioFixTimeMM, novice_noviceDB$ratioFixTimeMM)
+quick.anova(lolNovGroup_gold$ratioFixTimeMM, novice_noviceDB$ratioFixTimeMM)
+quick.anova(lolNovGroup_diamond$ratioFixTimeMM, novice_noviceDB$ratioFixTimeMM)
+
+quick.anova(lolNovGroup_silver$ratioSacTimeGame, novice_noviceDB$ratioSacTimeGame)
+quick.anova(lolNovGroup_gold$ratioSacTimeGame, novice_noviceDB$ratioSacTimeGame)
+quick.anova(lolNovGroup_diamond$ratioSacTimeGame, novice_noviceDB$ratioSacTimeGame)
+
+quick.anova(lolNovGroup_silver$ratioSacTimeMM, novice_noviceDB$ratioSacTimeMM)
+quick.anova(lolNovGroup_gold$ratioSacTimeMM, novice_noviceDB$ratioSacTimeMM)
+quick.anova(lolNovGroup_diamond$ratioSacTimeMM, novice_noviceDB$ratioSacTimeMM)
+
+quick.anova(lolNovGroup_silver$SacFixRatioMap, novice_noviceDB$SacFixRatioMap)
+quick.anova(lolNovGroup_gold$SacFixRatioMap, novice_noviceDB$SacFixRatioMap)
+quick.anova(lolNovGroup_diamond$SacFixRatioMap, novice_noviceDB$SacFixRatioMap)
+
+quick.anova(lolNovGroup_silver$SacFixRatioMM, novice_noviceDB$SacFixRatioMM)
+quick.anova(lolNovGroup_gold$SacFixRatioMM, novice_noviceDB$SacFixRatioMM)
+quick.anova(lolNovGroup_diamond$SacFixRatioMM, novice_noviceDB$SacFixRatioMM)
+
+# Comparing Lol Novices and experts by group
+
+quick.anova(lolNovGroup_A$NrFixNOMM, novice_noviceDB$NrFixNOMM)
+quick.anova(lolNovGroup_G$NrFixNOMM, novice_noviceDB$NrFixNOMM)
+
+quick.anova(lolNovGroup_A$NrFixationsMM, novice_noviceDB$NrFixationsMM)
+quick.anova(lolNovGroup_G$NrFixationsMM, novice_noviceDB$NrFixationsMM)
+
+quick.anova(lolNovGroup_A$SaccadesMap, novice_noviceDB$SaccadesMap)
+quick.anova(lolNovGroup_G$SaccadesMap, novice_noviceDB$SaccadesMap)
+
+quick.anova(lolNovGroup_A$SaccadesMM, novice_noviceDB$SaccadesMM)
+quick.anova(lolNovGroup_G$SaccadesMM, novice_noviceDB$SaccadesMM)
+
+quick.anova(lolNovGroup_A$ratioFixTimeGame, novice_noviceDB$ratioFixTimeGame)
+quick.anova(lolNovGroup_G$ratioFixTimeGame, novice_noviceDB$ratioFixTimeGame)
+
+quick.anova(lolNovGroup_A$ratioFixTimeMM, novice_noviceDB$ratioFixTimeMM)
+quick.anova(lolNovGroup_G$ratioFixTimeMM, novice_noviceDB$ratioFixTimeMM)
+
+quick.anova(lolNovGroup_A$ratioSacTimeGame, novice_noviceDB$ratioSacTimeGame)
+quick.anova(lolNovGroup_G$ratioSacTimeGame, novice_noviceDB$ratioSacTimeGame)
+
+quick.anova(lolNovGroup_A$ratioSacTimeMM, novice_noviceDB$ratioSacTimeMM)
+quick.anova(lolNovGroup_G$ratioSacTimeMM, novice_noviceDB$ratioSacTimeMM)
+
+quick.anova(lolNovGroup_A$SacFixRatioMap, novice_noviceDB$SacFixRatioMap)
+quick.anova(lolNovGroup_G$SacFixRatioMap, novice_noviceDB$SacFixRatioMap)
+
+quick.anova(lolNovGroup_A$SacFixRatioMM, novice_noviceDB$SacFixRatioMM)
+quick.anova(lolNovGroup_G$SacFixRatioMM, novice_noviceDB$SacFixRatioMM)
+
+##### correlational analyses #####
+
+cor(lolExpExpDB$NrFixNOMM ,lolExpExpDB$SaccadesMap , method="spearman")
+rcorr(lolExpExpDB$NrFixNOMM ,lolExpExpDB$SaccadesMap)
+polyserial(lolExpExpDB$NrFixNOMM,lolExpExpDB$Outcome)
+
+plot(lolExpExpDB$NrFixNOMM ,lolExpExpDB$SaccadesMap)
+abline(lm(lolExpExpDB$NrFixNOMM~lolExpExpDB$SaccadesMap), col="red")
+corrgram(lolExpExpDB, order=NULL, lower.panel=panel.shade, upper.panel = panel.pie)
