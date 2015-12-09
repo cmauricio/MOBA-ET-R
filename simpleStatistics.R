@@ -92,6 +92,8 @@ library("graphics", lib.loc="C:/Program Files/R/R-3.2.1/library")
 library("Hmisc")
 library("polycor")
 library("corrgram")
+library("HH")
+library("sm")
 
 #setwd("C:/Users/Mauro/Dropbox/Analysis")
 #setwd("C:/Users/ru25tas/Dropbox/Analysis")
@@ -191,7 +193,7 @@ lolNovicesDB[,"GazeInGame"]<-outliers.na(lolNovicesDB$GazeInGame)
 lolNovicesDB[,"GazeMM"]<-outliers.na(lolNovicesDB$GazeMM)
 lolNovicesDB[,"NrFixationsGame"]<-outliers.na(lolNovicesDB$NrFixNOMM)
 lolNovicesDB[,"NrFixationsMM"]<-outliers.na(lolNovicesDB$NrFixationsMM)
-lolNovicesDB[,"SaccadesMAp"]<-outliers.na(lolNovicesDB$SaccadesMap)
+lolNovicesDB[,"SaccadesMap"]<-outliers.na(lolNovicesDB$SaccadesMap)
 lolNovicesDB[,"SaccadesMM"]<-outliers.na(lolNovicesDB$SaccadesMM)
 lolNovicesDB[,"SacFixRatioMap"]<-outliers.na(lolNovicesDB$SacFixRatioMap)
 lolNovicesDB[,"SacFixRatioMM"]<-outliers.na(lolNovicesDB$SacFixRatioMM)
@@ -211,7 +213,7 @@ lolExpExpDB[,"GazeInGame"]<-outliers.na(lolExpExpDB$GazeInGame)
 lolExpExpDB[,"GazeMM"]<-outliers.na(lolExpExpDB$GazeMM)
 lolExpExpDB[,"NrFixationsGame"]<-outliers.na(lolExpExpDB$NrFixNOMM)
 lolExpExpDB[,"NrFixationsMM"]<-outliers.na(lolExpExpDB$NrFixationsMM)
-lolExpExpDB[,"SaccadesMAp"]<-outliers.na(lolExpExpDB$SaccadesMap)
+lolExpExpDB[,"SaccadesMap"]<-outliers.na(lolExpExpDB$SaccadesMap)
 lolExpExpDB[,"SaccadesMM"]<-outliers.na(lolExpExpDB$SaccadesMM)
 lolExpExpDB[,"SacFixRatioMap"]<-outliers.na(lolExpExpDB$SacFixRatioMap)
 lolExpExpDB[,"SacFixRatioMM"]<-outliers.na(lolExpExpDB$SacFixRatioMM)
@@ -245,7 +247,7 @@ dota2DB[,"GazeInGame"]<-outliers.na(dota2DB$GazeInGame)
 dota2DB[,"GazeMM"]<-outliers.na(dota2DB$GazeMM)
 dota2DB[,"NrFixationsGame"]<-outliers.na(dota2DB$NrFixNOMM)
 dota2DB[,"NrFixationsMM"]<-outliers.na(dota2DB$NrFixationsMM)
-dota2DB[,"SaccadesMAp"]<-outliers.na(dota2DB$SaccadesMap)
+dota2DB[,"SaccadesMap"]<-outliers.na(dota2DB$SaccadesMap)
 dota2DB[,"SaccadesMM"]<-outliers.na(dota2DB$SaccadesMM)
 dota2DB[,"SacFixRatioMap"]<-outliers.na(dota2DB$SacFixRatioMap)
 dota2DB[,"SacFixRatioMM"]<-outliers.na(dota2DB$SacFixRatioMM)
@@ -264,13 +266,13 @@ legend("topright", c("female","male"), cex=1, fill=heat.colors(length(genderCoun
 
 gameCount<-table(Descriptives$Game)
 gamePerc<-round(100*gameCount/sum(gameCount),2)
-pie(gamePerc,edges = 500, radius=1, main="Participation by game",labels=paste(genderPerc,"%"), col=heat.colors(length(gameCount)))
+pie(gamePerc,edges = 900, radius=3, main="Participation by game",labels=paste(gamePerc,"%"), col=heat.colors(length(gameCount)))
 legend("topright", c("DOTA2","League of Legends"), cex=0.8, fill=heat.colors(length(gameCount)))
 
 expertiseCount<-table(Descriptives$Expertise)
 expertisePerc<-round(100*expertiseCount/sum(expertiseCount),2)
 pie(expertisePerc,edges=500, radius=1, main="Participants expertise", labels=paste(expertisePerc,"%"), col=heat.colors(length(expertiseCount)))
-legend("topright", c("experts","novices"), cex=1, fill=heat.colors(length(expertiseCount)))
+legend("topright", c("experts","novices"), cex=1, fill=terrain.colors(length(expertiseCount)))
 
 labelsMobaExperience <- table(Descriptives$MOBAs.Experience)
 midpoints <- barplot(table(Descriptives$MOBAs.Experience), col=heat.colors(1,alpha=1), border="black", main="Participants by Tier", xlab="Tier", ylab="Frequency")
@@ -647,7 +649,7 @@ plot(meanSacsFixTier, col=fullDatabase$GroupByTier)
 with(meanSacsFixTier, plot(MeanFixMM,MeanSacMM, col = GroupByTier)) #Makes a plot with colour based on the Tier
 abline(h = 12, lwd = 2, lty = 2)
 
-#### Mean of fixation duration#####
+#### Mean of fixation duration #####
 
 meanFixTime<-cbind(fullDatabase$GroupByTier, fullDatabase$Condition, fullDatabase$Outcome, fullDatabase$MeanDurationGame, fullDatabase$MeanDurationMM)
 meanFixTime<-as.data.frame(meanFixTime)
@@ -655,8 +657,6 @@ meanFixTime<-as.data.frame(meanFixTime)
 colnames(meanFixTime)<-c("GroupByTier","Condition", "Outcome", "MeanFixDurationMap","MeanFixDurationMM")
 
 plot(meanFixTime, col=fullDatabase$GroupByTier)
-
-
 
 ##### Print plots##### 
 
@@ -986,10 +986,72 @@ quick.anova(lolNovGroup_G$SacFixRatioMM, novice_noviceDB$SacFixRatioMM)
 
 ##### correlational analyses #####
 
+simplified_lolExpExpDB<-cbind(lolExpExpDB$Participant, lolExpExpDB$Age, lolExpExpDB$NrFixNOMM, lolExpExpDB$NrFixationsMM, lolExpExpDB$SaccadesMap, lolExpExpDB$SaccadesMM, lolExpExpDB$ratioFixTimeGame, lolExpExpDB$ratioFixTimeMM, lolExpExpDB$ratioSacTimeGame, lolExpExpDB$ratioSacTimeMM, lolExpExpDB$SacFixRatioMap, lolExpExpDB$SacFixRatioMM)
+colnames(simplified_lolExpExpDB)<-c("Participant","Age","Fixations Game", "Fixations MM", "Saccades Game", "Saccades MM", "Fixations/Time Game", "Fixations/Time MM","Saccades/Time Game", "Saccades/Time MM", "Saccade/Fixation Game", "Saccade/Fixation MM")
+
 cor(lolExpExpDB$NrFixNOMM ,lolExpExpDB$SaccadesMap , method="spearman")
 rcorr(lolExpExpDB$NrFixNOMM ,lolExpExpDB$SaccadesMap)
 polyserial(lolExpExpDB$NrFixNOMM,lolExpExpDB$Outcome)
 
 plot(lolExpExpDB$NrFixNOMM ,lolExpExpDB$SaccadesMap)
 abline(lm(lolExpExpDB$NrFixNOMM~lolExpExpDB$SaccadesMap), col="red")
-corrgram(lolExpExpDB, order=NULL, lower.panel=panel.shade, upper.panel = panel.pie)
+corrgram(simplified_lolExpExpDB, order=NULL, lower.panel=panel.shade, upper.panel = panel.pie)
+
+
+##### graphs for poster #####
+
+par(mfrow=c(1,1))#resets layout of the plot to one sheet
+# par(mfrow=c(2,2)) # optional layout # creates a 2 by 2 layout
+
+png('ExploratoryPlot1.png', width = 1400, height = 1100, units = "px", pointsize = 13)
+corrgram(simplified_lolExpExpDB, order=F, lower.panel=panel.shade, upper.panel = panel.pie, cor.method = "pearson")
+dev.off()
+
+a<-lolNovGroup_silver$NrFixNOMM
+b<-lolNovGroup_gold$NrFixNOMM
+c<-lolNovGroup_diamond$NrFixNOMM
+d<-novice_noviceDB$NrFixNOMM
+
+z<-c("a","b","c","d")
+dataList<-lapply(z, get, envir=environment())
+
+png('DifferencesPlot1.png', width = 1024, height = 768, units = "px", pointsize = 13)
+boxplot(dataList, names=c("Silver","Gold","Diamond","Novices"), col=heat.colors(length(dataList)))
+title(main="Differential plot", cex.main=2, cex.lab=2, xlab="Expertise Groups",ylab= "Number of Fixations in Game")
+dev.off()
+
+a<-lolNovGroup_silver$SaccadesMap
+b<-lolNovGroup_gold$SaccadesMap
+c<-lolNovGroup_diamond$SaccadesMap
+d<-novice_noviceDB$SaccadesMap
+
+z<-c("a","b","c","d")
+dataList<-lapply(z, get, envir=environment())
+
+png('DifferencesPlot2.png', width = 1024, height = 768, units = "px", pointsize = 13)
+boxplot(dataList, names=c("Silver","Gold","Diamond","Novices"), col=heat.colors(length(dataList)), main="Differential plot", xlab="Expertise Groups",ylab= "Number of Saccadesin Game")
+dev.off()
+
+par(mfrow=c(1,1))
+
+distribution_hist(Descriptives$Age)
+
+png('game-expertise.png', width = 1024, height = 768, units = "px", pointsize = 13)
+plot(Descriptives$Game~Descriptives$Expertise, main="Game-expertise Distribution", xlab="Expertise", ylab="Game", col=heat.colors(2))
+dev.off()
+
+png('game-expertise.png', width = 1024, height = 768, units = "px", pointsize = 13)
+
+layout(matrix(c(1,2),1,2))
+gameCount<-table(Descriptives$Game)
+gamePerc<-round(100*gameCount/sum(gameCount),2)
+pie(gamePerc,edges = 900, radius=1, cex.lab=3, labels=paste(gamePerc,"%"), col=heat.colors(length(gameCount)))
+title(main="Participation by game", cex.main=2.2)
+legend("topright", c("DOTA2","League of Legends"), cex=1.3, fill=heat.colors(length(gameCount)))
+
+expertiseCount<-table(Descriptives$Expertise)
+expertisePerc<-round(100*expertiseCount/sum(expertiseCount),2)
+pie(expertisePerc,edges=900, radius=1, cex.lab=3, labels=paste(expertisePerc,"%"), col=terrain.colors(length(expertiseCount)))
+title(main="Participation by Expertise", cex.main=2.2)
+legend("topright", c("Experts","Novices"), cex=1.3, fill=terrain.colors(length(expertiseCount)))
+dev.off()
