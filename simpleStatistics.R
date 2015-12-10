@@ -257,6 +257,57 @@ dota2DB[,"ratioSacTimeGame"]<-outliers.na(dota2DB$ratioSacTimeGame)
 dota2DB[,"ratioSacTimeMM"]<-outliers.na(dota2DB$ratioSacTimeMM)
 dota2DB<-na.omit(dota2DB)
 
+##### Spliting databases for Expertise groups #####
+
+# LoL expertise levels - experts
+
+lolExpGroup_A<-subset(lolExpExpDB, GroupByTier=="A")
+lolExpGroup_B<-subset(lolExpExpDB, GroupByTier=="B")
+lolExpGroup_C<-subset(lolExpExpDB, GroupByTier=="C")
+lolExpGroup_D<-subset(lolExpExpDB, GroupByTier=="D")
+lolExpGroup_E<-subset(lolExpExpDB, GroupByTier=="E")
+lolExpGroup_F<-subset(lolExpExpDB, GroupByTier=="F")
+lolExpGroup_G<-subset(lolExpExpDB, GroupByTier=="G")
+
+lolExpGroup_silver<-subset(lolExpExpDB, Tier=="silver")
+lolExpGroup_gold<-subset(lolExpExpDB, Tier=="gold")
+lolExpGroup_diamond<-subset(lolExpExpDB, Tier=="diamond")
+
+# LoL expertise levels - novice
+
+lolNovGroup_A<-subset(lolExpNovDB, GroupByTier=="A")
+lolNovGroup_B<-subset(lolExpNovDB, GroupByTier=="B")
+lolNovGroup_C<-subset(lolExpNovDB, GroupByTier=="C")
+lolNovGroup_D<-subset(lolExpNovDB, GroupByTier=="D")
+lolNovGroup_E<-subset(lolExpNovDB, GroupByTier=="E")
+lolNovGroup_F<-subset(lolExpNovDB, GroupByTier=="F")
+lolNovGroup_G<-subset(lolExpNovDB, GroupByTier=="G")
+
+lolNovGroup_silver<-subset(lolExpNovDB, Tier=="silver")
+lolNovGroup_gold<-subset(lolExpNovDB, Tier=="gold")
+lolNovGroup_diamond<-subset(lolExpNovDB, Tier=="diamond")
+
+# Dota2 expertise levels
+
+dotaGroup_A<-subset(dota2DB, GroupByElo=="A")
+dotaGroup_B<-subset(dota2DB, GroupByElo=="B")
+dotaGroup_C<-subset(dota2DB, GroupByElo=="C")
+dotaGroup_D<-subset(dota2DB, GroupByElo=="D")
+dotaGroup_E<-subset(dota2DB, GroupByElo=="E")
+
+# Novice development
+
+novice_tutorialDB<-subset(lolNovicesDB, Condition=="tutorial")
+novice_noviceDB<-subset(lolNovicesDB, Condition=="novice")
+novice_ev1DB<-subset(lolNovicesDB, Condition=="evaluation1")
+novice_ev2DB<-subset(lolNovicesDB, Condition=="evaluation2")
+
+# simplified lol experts database 
+
+simplified_lolExpExpDB<-cbind(lolExpExpDB$Participant, lolExpExpDB$Age, lolExpExpDB$NrFixNOMM, lolExpExpDB$NrFixationsMM, lolExpExpDB$SaccadesMap, lolExpExpDB$SaccadesMM, lolExpExpDB$ratioFixTimeGame, lolExpExpDB$ratioFixTimeMM, lolExpExpDB$ratioSacTimeGame, lolExpExpDB$ratioSacTimeMM, lolExpExpDB$SacFixRatioMap, lolExpExpDB$SacFixRatioMM)
+colnames(simplified_lolExpExpDB)<-c("Participant","Age","Fixations Game", "Fixations MM", "Saccades Game", "Saccades MM", "Fixations/Time Game", "Fixations/Time MM","Saccades/Time Game", "Saccades/Time MM", "Saccade/Fixation Game", "Saccade/Fixation MM")
+
+
 ##### Descriptive plots #####
 
 genderCount<-table(Descriptives$Gender)
@@ -588,51 +639,6 @@ distribution_hist(dota2DB$ratioSacTimeMM,xlab="DOTA2 Saccade-fixation ratio in g
 #plot(fullDatabase$Game~fullDatabase$Expertise,type = "", main="game vs expertise", xlab="game", ylab="expertise")
 
 #plot(fullDatabase$Expertise~fullDatabase$Outcome,type = "", main="expertise vs outcome", xlab="expertise", ylab="outcome")
-
-##### Spliting databases for Expertise groups #####
-
-# LoL expertise levels - experts
-
-lolExpGroup_A<-subset(lolExpExpDB, GroupByTier=="A")
-lolExpGroup_B<-subset(lolExpExpDB, GroupByTier=="B")
-lolExpGroup_C<-subset(lolExpExpDB, GroupByTier=="C")
-lolExpGroup_D<-subset(lolExpExpDB, GroupByTier=="D")
-lolExpGroup_E<-subset(lolExpExpDB, GroupByTier=="E")
-lolExpGroup_F<-subset(lolExpExpDB, GroupByTier=="F")
-lolExpGroup_G<-subset(lolExpExpDB, GroupByTier=="G")
-
-lolExpGroup_silver<-subset(lolExpExpDB, Tier=="silver")
-lolExpGroup_gold<-subset(lolExpExpDB, Tier=="gold")
-lolExpGroup_diamond<-subset(lolExpExpDB, Tier=="diamond")
-
-# LoL expertise levels - novice
-
-lolNovGroup_A<-subset(lolExpNovDB, GroupByTier=="A")
-lolNovGroup_B<-subset(lolExpNovDB, GroupByTier=="B")
-lolNovGroup_C<-subset(lolExpNovDB, GroupByTier=="C")
-lolNovGroup_D<-subset(lolExpNovDB, GroupByTier=="D")
-lolNovGroup_E<-subset(lolExpNovDB, GroupByTier=="E")
-lolNovGroup_F<-subset(lolExpNovDB, GroupByTier=="F")
-lolNovGroup_G<-subset(lolExpNovDB, GroupByTier=="G")
-
-lolNovGroup_silver<-subset(lolExpNovDB, Tier=="silver")
-lolNovGroup_gold<-subset(lolExpNovDB, Tier=="gold")
-lolNovGroup_diamond<-subset(lolExpNovDB, Tier=="diamond")
-
-# Dota2 expertise levels
-
-dotaGroup_A<-subset(dota2DB, GroupByElo=="A")
-dotaGroup_B<-subset(dota2DB, GroupByElo=="B")
-dotaGroup_C<-subset(dota2DB, GroupByElo=="C")
-dotaGroup_D<-subset(dota2DB, GroupByElo=="D")
-dotaGroup_E<-subset(dota2DB, GroupByElo=="E")
-
-# Novice development
-
-novice_tutorialDB<-subset(lolNovicesDB, Condition=="tutorial")
-novice_noviceDB<-subset(lolNovicesDB, Condition=="novice")
-novice_ev1DB<-subset(lolNovicesDB, Condition=="evaluation1")
-novice_ev2DB<-subset(lolNovicesDB, Condition=="evaluation2")
 
 ##### Average (statistical mean) of fixations and saccades per game #####
 
@@ -986,9 +992,6 @@ quick.anova(lolNovGroup_G$SacFixRatioMM, novice_noviceDB$SacFixRatioMM)
 
 ##### correlational analyses #####
 
-simplified_lolExpExpDB<-cbind(lolExpExpDB$Participant, lolExpExpDB$Age, lolExpExpDB$NrFixNOMM, lolExpExpDB$NrFixationsMM, lolExpExpDB$SaccadesMap, lolExpExpDB$SaccadesMM, lolExpExpDB$ratioFixTimeGame, lolExpExpDB$ratioFixTimeMM, lolExpExpDB$ratioSacTimeGame, lolExpExpDB$ratioSacTimeMM, lolExpExpDB$SacFixRatioMap, lolExpExpDB$SacFixRatioMM)
-colnames(simplified_lolExpExpDB)<-c("Participant","Age","Fixations Game", "Fixations MM", "Saccades Game", "Saccades MM", "Fixations/Time Game", "Fixations/Time MM","Saccades/Time Game", "Saccades/Time MM", "Saccade/Fixation Game", "Saccade/Fixation MM")
-
 cor(lolExpExpDB$NrFixNOMM ,lolExpExpDB$SaccadesMap , method="spearman")
 rcorr(lolExpExpDB$NrFixNOMM ,lolExpExpDB$SaccadesMap)
 polyserial(lolExpExpDB$NrFixNOMM,lolExpExpDB$Outcome)
@@ -1016,7 +1019,7 @@ z<-c("a","b","c","d")
 dataList<-lapply(z, get, envir=environment())
 
 png('DifferencesPlot1.png', width = 1024, height = 768, units = "px", pointsize = 13)
-boxplot(dataList, names=c("Silver","Gold","Diamond","Novices"), col=heat.colors(length(dataList)))
+boxplot(dataList, names=c("Silver","Gold","Diamond","Novices"), col=c("gray", "yellow","cyan", "green"))
 title(main="Differential plot", cex.main=2, cex.lab=2, xlab="Expertise Groups",ylab= "Number of Fixations in Game")
 dev.off()
 
@@ -1025,11 +1028,13 @@ b<-lolNovGroup_gold$SaccadesMap
 c<-lolNovGroup_diamond$SaccadesMap
 d<-novice_noviceDB$SaccadesMap
 
+sd(a)
+
 z<-c("a","b","c","d")
 dataList<-lapply(z, get, envir=environment())
 
 png('DifferencesPlot2.png', width = 1024, height = 768, units = "px", pointsize = 13)
-boxplot(dataList, names=c("Silver","Gold","Diamond","Novices"), col=heat.colors(length(dataList)), main="Differential plot", xlab="Expertise Groups",ylab= "Number of Saccadesin Game")
+boxplot(dataList, names=c("Silver","Gold","Diamond","Novices"), col=c("gray", "yellow","cyan", "green"), main="Differential plot", xlab="Expertise Groups",ylab= "Number of Saccadesin Game")
 dev.off()
 
 par(mfrow=c(1,1))
