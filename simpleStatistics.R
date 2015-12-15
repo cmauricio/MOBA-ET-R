@@ -97,6 +97,7 @@ library("sm")
 
 #setwd("C:/Users/Mauro/Dropbox/Analysis")
 #setwd("C:/Users/ru25tas/Dropbox/Analysis")
+#path<-file.path()
 
 wDirectory<-"C:/Users/ru25tas/Dropbox/Analysis"
 csvFile<-"151201-FullETDatabase.csv"
@@ -306,6 +307,11 @@ novice_ev2DB<-subset(lolNovicesDB, Condition=="evaluation2")
 
 simplified_lolExpExpDB<-cbind(lolExpExpDB$Participant, lolExpExpDB$Age, lolExpExpDB$NrFixNOMM, lolExpExpDB$NrFixationsMM, lolExpExpDB$SaccadesMap, lolExpExpDB$SaccadesMM, lolExpExpDB$ratioFixTimeGame, lolExpExpDB$ratioFixTimeMM, lolExpExpDB$ratioSacTimeGame, lolExpExpDB$ratioSacTimeMM, lolExpExpDB$SacFixRatioMap, lolExpExpDB$SacFixRatioMM)
 colnames(simplified_lolExpExpDB)<-c("Participant","Age","Fixations Game", "Fixations MM", "Saccades Game", "Saccades MM", "Fixations/Time Game", "Fixations/Time MM","Saccades/Time Game", "Saccades/Time MM", "Saccade/Fixation Game", "Saccade/Fixation MM")
+
+
+simplified_lolExpExpDB<-cbind(lolExpExpDB$Age, lolExpExpDB$NrFixNOMM, lolExpExpDB$SaccadesMap,lolExpExpDB$ratioFixTimeGame, lolExpExpDB$ratioSacTimeGame, lolExpExpDB$SacFixRatioMap)
+colnames(simplified_lolExpExpDB)<-c("Age","Fixations", "Saccades", "Fixations/Seconds", "Saccades/Seconds", "Saccade-Fixation Ratio")
+
 
 
 ##### Descriptive plots #####
@@ -1059,4 +1065,8 @@ expertisePerc<-round(100*expertiseCount/sum(expertiseCount),2)
 pie(expertisePerc,edges=900, radius=1, cex.lab=3, labels=paste(expertisePerc,"%"), col=terrain.colors(length(expertiseCount)))
 title(main="Participation by Expertise", cex.main=2.2)
 legend("topright", c("Experts","Novices"), cex=1.3, fill=terrain.colors(length(expertiseCount)))
+dev.off()
+
+png('game-correlation.png', width = 1024, height = 768, units = "px", pointsize = 13)
+corrgram(simplified_lolExpExpDB, order=NULL, lower.panel=panel.shade, upper.panel = panel.pie)
 dev.off()
