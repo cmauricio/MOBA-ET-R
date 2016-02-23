@@ -102,10 +102,12 @@ ratioSacTimeMM<-as.numeric(ratioSacTimeMM)
 
 fullDatabase<-cbind(fullDatabase, ratioFixTimeGame,ratioFixTimeMM,ratioSacTimeGame,ratioSacTimeMM)
 
+write.table(fullDatabase,"EyeTrackingDatabase2.csv", sep=";", dec=",")
+
 ##### Descriptives database #####
 
 wDirectory<-"C:/Users/ru25tas/Dropbox/Analysis"
-csvFile<-"151201-Descriptives.csv"
+csvFile<-read.table("151201-Descriptives.csv")
 
 setwd(wDirectory)
 
@@ -155,10 +157,14 @@ lolNovicesDB[,"ratioSacTimeGame"]<-outliers.na(lolNovicesDB$ratioSacTimeGame)
 lolNovicesDB[,"ratioSacTimeMM"]<-outliers.na(lolNovicesDB$ratioSacTimeMM)
 lolNovicesDB<-na.omit(lolNovicesDB)
 
+write.table(lolNovicesDB,"LolNovicesDatabase.csv", sep=";", dec=",")
+
 lolExpertsDB<-subset(fullDatabase, Game=="lol" & Expertise=="expert")
 lolExpertsDB[,"Elo"]<-NULL
 lolExpertsDB[,"GroupByElo"]<-NULL
 lolExpertsDB<-na.omit(lolExpertsDB)
+
+write.table(lolExpertsDB,"LolExpertsDatabase.csv", sep=";", dec=",")
 
 lolExpExpDB<-subset(lolExpertsDB, Condition=="expert")
 lolExpExpDB[,"GazeInGame"]<-outliers.na(lolExpExpDB$GazeInGame)
@@ -175,12 +181,14 @@ lolExpExpDB[,"ratioSacTimeGame"]<-outliers.na(lolExpExpDB$ratioSacTimeGame)
 lolExpExpDB[,"ratioSacTimeMM"]<-outliers.na(lolExpExpDB$ratioSacTimeMM)
 lolExpExpDB<-na.omit(lolExpExpDB)
 
+write.table(lolExpExpDB,"LolExpplayExpconDatabase.csv", sep=";", dec=",")
+
 lolExpNovDB<-subset(lolExpertsDB, Condition=="novice")
 lolExpNovDB[,"GazeInGame"]<-outliers.na(lolExpNovDB$GazeInGame)
 lolExpNovDB[,"GazeMM"]<-outliers.na(lolExpNovDB$GazeMM)
 lolExpNovDB[,"NrFixationsGame"]<-outliers.na(lolExpNovDB$NrFixNOMM)
 lolExpNovDB[,"NrFixationsMM"]<-outliers.na(lolExpNovDB$NrFixationsMM)
-lolExpNovDB[,"SaccadesMAp"]<-outliers.na(lolExpNovDB$SaccadesMap)
+lolExpNovDB[,"SaccadesMap"]<-outliers.na(lolExpNovDB$SaccadesMap)
 lolExpNovDB[,"SaccadesMM"]<-outliers.na(lolExpNovDB$SaccadesMM)
 lolExpNovDB[,"SacFixRatioMap"]<-outliers.na(lolExpNovDB$SacFixRatioMap)
 lolExpNovDB[,"SacFixRatioMM"]<-outliers.na(lolExpNovDB$SacFixRatioMM)
@@ -189,6 +197,8 @@ lolExpNovDB[,"ratioFixTimeMM"]<-outliers.na(lolExpNovDB$ratioFixTimeMM)
 lolExpNovDB[,"ratioSacTimeGame"]<-outliers.na(lolExpNovDB$ratioSacTimeGame)
 lolExpNovDB[,"ratioSacTimeMM"]<-outliers.na(lolExpNovDB$ratioSacTimeMM)
 lolExpNovDB<-na.omit(lolExpNovDB)
+
+write.table(lolExpNovDB,"LolExpplayNovconDatabase.csv", sep=";", dec=",")
 
 dota2DB<-subset(fullDatabase, Game=="dota")
 dota2DB[,"Tier"]<-NULL
@@ -209,9 +219,13 @@ dota2DB[,"ratioSacTimeGame"]<-outliers.na(dota2DB$ratioSacTimeGame)
 dota2DB[,"ratioSacTimeMM"]<-outliers.na(dota2DB$ratioSacTimeMM)
 dota2DB<-na.omit(dota2DB)
 
+write.table(dota2DB,"Dota2Database.csv", sep=";", dec=",")
+
 ##### Spliting databases for Expertise groups #####
 
 # LoL expertise levels - experts
+
+lolExpExpDB<-read.table("LolExpplayExpconDatabase.csv", sep=";", dec=",")
 
 lolExpGroup_A<-subset(lolExpExpDB, GroupByTier=="A")
 lolExpGroup_B<-subset(lolExpExpDB, GroupByTier=="B")
@@ -227,6 +241,8 @@ lolExpGroup_diamond<-subset(lolExpExpDB, Tier=="diamond")
 
 # LoL expertise levels - novice
 
+lolExpNovDB<-read.table("LolExpplayNovconDatabase.csv", sep=";", dec=",")
+
 lolNovGroup_A<-subset(lolExpNovDB, GroupByTier=="A")
 lolNovGroup_B<-subset(lolExpNovDB, GroupByTier=="B")
 lolNovGroup_C<-subset(lolExpNovDB, GroupByTier=="C")
@@ -241,6 +257,8 @@ lolNovGroup_diamond<-subset(lolExpNovDB, Tier=="diamond")
 
 # Dota2 expertise levels
 
+lolExpNovDB<-read.table("Dota2Database.csv", sep=";", dec=",")
+
 dotaGroup_A<-subset(dota2DB, GroupByElo=="A")
 dotaGroup_B<-subset(dota2DB, GroupByElo=="B")
 dotaGroup_C<-subset(dota2DB, GroupByElo=="C")
@@ -249,6 +267,8 @@ dotaGroup_E<-subset(dota2DB, GroupByElo=="E")
 
 # Novice development
 
+lolExpNovDB<-read.table("LolNovicesDatabase.csv", sep=";", dec=",")
+
 novice_tutorialDB<-subset(lolNovicesDB, Condition=="tutorial")
 novice_noviceDB<-subset(lolNovicesDB, Condition=="novice")
 novice_ev1DB<-subset(lolNovicesDB, Condition=="evaluation1")
@@ -256,13 +276,15 @@ novice_ev2DB<-subset(lolNovicesDB, Condition=="evaluation2")
 
 # simplified lol experts database 
 
-simplified_lolExpExpDB<-cbind(lolExpExpDB$Participant, lolExpExpDB$Age, lolExpExpDB$NrFixNOMM, lolExpExpDB$NrFixationsMM, lolExpExpDB$SaccadesMap, lolExpExpDB$SaccadesMM, lolExpExpDB$ratioFixTimeGame, lolExpExpDB$ratioFixTimeMM, lolExpExpDB$ratioSacTimeGame, lolExpExpDB$ratioSacTimeMM, lolExpExpDB$SacFixRatioMap, lolExpExpDB$SacFixRatioMM)
-colnames(simplified_lolExpExpDB)<-c("Participant","Age","Fixations Game", "Fixations MM", "Saccades Game", "Saccades MM", "Fixations/Time Game", "Fixations/Time MM","Saccades/Time Game", "Saccades/Time MM", "Saccade/Fixation Game", "Saccade/Fixation MM")
+simplified_lolExpExpDB<-cbind(lolExpExpDB$Participant, lolExpExpDB$Age, lolExpExpDB$Tier, lolExpExpDB$GroupByTier, lolExpExpDB$NrFixNOMM, lolExpExpDB$NrFixationsMM, lolExpExpDB$SaccadesMap, lolExpExpDB$SaccadesMM, lolExpExpDB$ratioFixTimeGame, lolExpExpDB$ratioFixTimeMM, lolExpExpDB$ratioSacTimeGame, lolExpExpDB$ratioSacTimeMM, lolExpExpDB$SacFixRatioMap, lolExpExpDB$SacFixRatioMM)
+colnames(simplified_lolExpExpDB)<-c("Participant","Age", "Tier", "Group", "Fixations Game", "Fixations MM", "Saccades Game", "Saccades MM", "Fixations/Time Game", "Fixations/Time MM","Saccades/Time Game", "Saccades/Time MM", "Saccade/Fixation Game", "Saccade/Fixation MM")
 
+write.table(simplified_lolExpExpDB,"FocusedLolExpplayExpconDatabase.csv", sep=";", dec=",")
 
-simplified_lolExpExpDB<-cbind(lolExpExpDB$Age, lolExpExpDB$NrFixNOMM, lolExpExpDB$SaccadesMap,lolExpExpDB$ratioFixTimeGame, lolExpExpDB$ratioSacTimeGame, lolExpExpDB$SacFixRatioMap)
-colnames(simplified_lolExpExpDB)<-c("Age","Fixations", "Saccades", "Fixations/Seconds", "Saccades/Seconds", "Saccade-Fixation Ratio")
+simplified_lolExpNovDB<-cbind(lolExpNovDB$Participant, lolExpNovDB$Age, lolExpNovDB$Condition, lolExpNovDB$NrFixNOMM, lolExpNovDB$NrFixationsMM, lolExpNovDB$SaccadesMap, lolExpNovDB$SaccadesMM, lolExpNovDB$ratioFixTimeGame, lolExpNovDB$ratioFixTimeMM, lolExpNovDB$ratioSacTimeGame, lolExpExpDB$ratioSacTimeMM, lolExpExpDB$SacFixRatioMap, lolExpExpDB$SacFixRatioMM)
+colnames(simplified_lolExpExpDB)<-c("Participant","Age", "group", "Fixations Game", "Fixations MM", "Saccades Game", "Saccades MM", "Fixations/Time Game", "Fixations/Time MM","Saccades/Time Game", "Saccades/Time MM", "Saccade/Fixation Game", "Saccade/Fixation MM")
 
+write.table(lolExpNovDB,"FocusedLolExpplayNovconDatabase.csv", sep=";", dec=",")
 
 
 ##### Descriptive plots #####
