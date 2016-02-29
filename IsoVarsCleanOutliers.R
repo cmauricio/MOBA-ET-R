@@ -5,7 +5,7 @@ lolexpexp<-read.table("160223lolExpExpCleanRatios.csv",header=T,sep=";",dec=",")
 lolexpexp<-subset(x=lolexpexp, select=c("Registry", "Participant", "Session",
                                       "Age", "Gender", "Group", "Expertise",
                                       "Condition", "Game", "Tier", "Division",
-                                      "GroupByTier", "Outcome", "NrFixNOMM",
+                                      "GroupByTier", "Outcome", "NrFixationsGame", "NrFixNOMM",
                                       "MeanDurationFixGame", "SDDurationFixGame", "NrFixationsMM", 
                                       "MeanDurationFixMM", "SDDurationFixMM", "SaccadesMap",
                                       "SaccadesMM", "SurfaceVisGame.secs.", "SacFixRatioMap", "SacFixRatioMM",
@@ -13,6 +13,10 @@ lolexpexp<-subset(x=lolexpexp, select=c("Registry", "Participant", "Session",
 
 lolexpexp$NrFixRatio<-lolexpexp$NrFixNOMM/lolexpexp$NrFixationsMM
 lolexpexp$NrSacRatio<-lolexpexp$SaccadesMap/lolexpexp$SaccadesMM
+lolexpexp$PercFixGame<-(100*lolexpexp$NrFixNOMM)/lolexpexp$NrFixationsGame
+lolexpexp$PercFixMM<-(100*lolexpexp$NrFixationsMM)/lolexpexp$NrFixationsGame
+lolexpexp$PercSacGame<-lolexpexp$SaccadesMap/(lolexpexp$SaccadesMap+lolexpexp$SaccadesMM)
+lolexpexp$PercSacMM<-lolexpexp$SaccadesMM/(lolexpexp$SaccadesMap+lolexpexp$SaccadesMM)
 
 lolexpexp$MeanDurationFixGame<-clean.outliers(lolexpexp, "MeanDurationFixGame")
 lolexpexp$SDDurationFixGame<-clean.outliers(lolexpexp, "SDDurationFixGame")
@@ -37,7 +41,7 @@ lolexpnov<-read.table("160223lolExpNovCleanRatios.csv",header=T,sep=";",dec=",")
 lolexpnov<-subset(lolexpnov, select=c("Registry", "Participant", "Session",
                                "Age", "Gender", "Group", "Expertise",
                                "Condition", "Game", "Tier", "Division",
-                               "GroupByTier", "Outcome", "NrFixNOMM",
+                               "GroupByTier", "Outcome","NrFixationsGame", "NrFixNOMM",
                                "MeanDurationFixGame", "SDDurationFixGame", "NrFixationsMM", 
                                "MeanDurationFixMM", "SDDurationFixMM", "SaccadesMap",
                                "SaccadesMM", "SacFixRatioMap", "SacFixRatioMM",
@@ -45,6 +49,10 @@ lolexpnov<-subset(lolexpnov, select=c("Registry", "Participant", "Session",
 
 lolexpnov$NrFixRatio<-lolexpnov$NrFixNOMM/lolexpnov$NrFixationsMM
 lolexpnov$NrSacRatio<-lolexpnov$SaccadesMap/lolexpnov$SaccadesMM
+lolexpnov$PercFixGame<-(100*lolexpnov$NrFixNOMM)/lolexpnov$NrFixationsGame
+lolexpnov$PercFixMM<-(100*lolexpnov$NrFixationsMM)/lolexpnov$NrFixationsGame
+lolexpnov$PercSacGame<-lolexpnov$SaccadesMap/(lolexpnov$SaccadesMap+lolexpnov$SaccadesMM)
+lolexpnov$PercSacMM<-lolexpnov$SaccadesMM/(lolexpnov$SaccadesMap+lolexpnov$SaccadesMM)
 
 lolexpnov$MeanDurationFixGame<-clean.outliers(lolexpnov, "MeanDurationFixGame")
 lolexpnov$SDDurationFixGame<-clean.outliers(lolexpnov, "SDDurationFixGame")
@@ -68,7 +76,7 @@ lolnov<-read.table("160223lolNovCleanRatios.csv",header=T,sep=";",dec=",")
 
 lolnov<-subset(lolnov, select=c("Registry", "Participant", "Session",
                                "Age", "Gender", "Group", "Expertise",
-                               "Condition", "Game", "Outcome", "NrFixNOMM",
+                               "Condition", "Game", "Outcome", "NrFixationsGame", "NrFixNOMM",
                                "MeanDurationFixGame", "SDDurationFixGame", "NrFixationsMM", 
                                "MeanDurationFixMM", "SDDurationFixMM", "SaccadesMap",
                                "SaccadesMM", "SacFixRatioMap", "SacFixRatioMM",
@@ -76,6 +84,10 @@ lolnov<-subset(lolnov, select=c("Registry", "Participant", "Session",
 
 lolnov$NrFixRatio<-lolnov$NrFixNOMM/lolnov$NrFixationsMM
 lolnov$NrSacRatio<-lolnov$SaccadesMap/lolnov$SaccadesMM
+lolnov$PercFixGame<-(100*lolnov$NrFixNOMM)/lolnov$NrFixationsGame
+lolnov$PercFixMM<-(100*lolnov$NrFixationsMM)/lolnov$NrFixationsGame
+lolnov$PercSacGame<-lolnov$SaccadesMap/(lolnov$SaccadesMap+lolnov$SaccadesMM)
+lolnov$PercSacMM<-lolnov$SaccadesMM/(lolnov$SaccadesMap+lolnov$SaccadesMM)
 
 lolnov$MeanDurationFixGame<-clean.outliers(lolnov, "MeanDurationFixGame")
 lolnov$SDDurationFixGame<-clean.outliers(lolnov, "SDDurationFixGame")
@@ -95,11 +107,11 @@ write.table(lolnov, "160223lolNovCleanOutliers.csv", sep=";", dec=",")
 
 
 
-dotaexp<-read.table("160223dotaExpNovCleanRatios.csv",header=T,sep=";",dec=",")
+dotaexp<-read.table("160223dotaExpCleanRatios.csv",header=T,sep=";",dec=",")
 
-dotaexp<-subset(dotaexp, select=c("Registry", "Participant", "Session",
-                               "Age", "Gender", "Group", "Expertise",
-                               "Condition", "Game", "Elo", "GroupByElo", "Outcome", "NrFixNOMM",
+dotaexp<-subset(dotaexp, select=c("Registry", "Participant", "Session", "Age",
+                               "Gender", "Group", "Expertise","Condition", "Game",
+                               "Elo", "GroupByElo", "Outcome","NrFixationsGame","NrFixNOMM",
                                "MeanDurationFixGame", "SDDurationFixGame", "NrFixationsMM", 
                                "MeanDurationFixMM", "SDDurationFixMM", "SaccadesMap",
                                "SaccadesMM", "SacFixRatioMap", "SacFixRatioMM",
@@ -107,6 +119,10 @@ dotaexp<-subset(dotaexp, select=c("Registry", "Participant", "Session",
 
 dotaexp$NrFixRatio<-dotaexp$NrFixNOMM/dotaexp$NrFixationsMM
 dotaexp$NrSacRatio<-dotaexp$SaccadesMap/dotaexp$SaccadesMM
+dotaexp$PercFixGame<-(100*dotaexp$NrFixNOMM)/dotaexp$NrFixationsGame
+dotaexp$PercFixMM<-(100*dotaexp$NrFixationsMM)/dotaexp$NrFixationsGame
+dotaexp$PercSacGame<-dotaexp$SaccadesMap/(dotaexp$SaccadesMap+dotaexp$SaccadesMM)
+dotaexp$PercSacMM<-dotaexp$SaccadesMM/(dotaexp$SaccadesMap+dotaexp$SaccadesMM)
 
 dotaexp$MeanDurationFixGame<-clean.outliers(dotaexp, "MeanDurationFixGame")
 dotaexp$SDDurationFixGame<-clean.outliers(dotaexp, "SDDurationFixGame")
